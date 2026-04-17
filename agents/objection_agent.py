@@ -51,10 +51,10 @@ class ObjectionAgent(BaseAgent):
                 "data_response": "Ksher 持有泰国央行（Bank of Thailand）颁发的支付牌照，资金本地清算不经过第三方中转，每一笔交易都可追溯。",
             },
             {
-                "objection": "换渠道太麻烦，现在用的银行也挺好的",
+                "objection": "切换收款渠道需要时间，现在用的银行比较稳定",
                 "direct_response": "切换确实需要一些时间，但 Ksher 提供专人对接服务，从开户到上线通常只需要 3-5 个工作日，不影响正常收款。",
-                "empathy_response": "完全理解，稳定的收款渠道对业务很重要。不过很多客户反馈，切换后第一个月就感受到了明显的成本下降和效率提升。",
-                "data_response": "按您的月流水计算，继续使用银行每年多花 ¥{annual_saving:,.0f}。Ksher 的切换成本几乎为零，而收益从第一个月开始体现。",
+                "empathy_response": "完全理解，稳定的收款渠道对业务很重要。不过很多客户反馈，增加一个渠道后第一个月就感受到了明显的成本下降和效率提升。",
+                "data_response": "按您的月流水计算，继续使用银行每年多花 ¥{annual_saving:,.0f}。Ksher 的开户成本几乎为零，而收益从第一个月开始体现。",
             },
             {
                 "objection": "费率看起来差不多，为什么要换？",
@@ -65,7 +65,7 @@ class ObjectionAgent(BaseAgent):
         ],
         "stock": [
             {
-                "objection": "已经在用 PingPong/万里汇了，懒得换",
+                "objection": "已经在用 PingPong/万里汇了，更换需要投入精力",
                 "direct_response": "理解，但东南亚是 Ksher 的主场。我们在泰国有本地牌照，资金本地清算不用中转，到账快 1-2 天。",
                 "empathy_response": "换渠道确实需要投入一些精力。不过如果现有渠道在东南亚的到账速度和汇率不是最优，每年可能多损失不少利润。",
                 "data_response": "PingPong 东南亚无本地牌照，资金需中转。Ksher 本地清算 T+1 到账，汇率优 0.3%。按您的流水，年省 ¥{annual_saving:,.0f}。",
@@ -263,7 +263,7 @@ class ObjectionAgent(BaseAgent):
 
         bf_info = BATTLEFIELD_TYPES.get(battlefield, {})
         tips = {
-            "increment": "本次拜访核心策略：先算隐性成本账，让客户意识到'便宜'的银行其实不便宜，再给出 Ksher 的降维打击方案。",
+            "increment": "本次拜访核心策略：客观对比收款渠道的真实成本结构，帮助客户了解不同渠道的综合成本差异，再展示 Ksher 的差异化优势。",
             "stock": "本次拜访核心策略：不攻击竞品，强调 Ksher 在东南亚的'主场优势'——本地牌照带来的到账速度和汇率优势。",
             "education": "本次拜访核心策略：建立信任为主，不要急着推销。帮客户建立选择标准（牌照/速度/费率），让客户自己发现 Ksher 是最优解。",
         }

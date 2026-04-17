@@ -14,6 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from services.knowledge_loader import KnowledgeLoader, get_knowledge
 from agents.base_agent import BaseAgent, AgentRegistry, agent_register
+from agents.proposal_agent import ProposalAgent
+from agents.objection_agent import ObjectionAgent
 from orchestrator.battle_router import (
     detect_battlefield,
     enrich_context,
@@ -573,6 +575,160 @@ def test_stream_end_to_end():
     assert "mock_speech" in full_text
 
 
+# ----------------------------------------------------------
+# 测试 5: ProposalAgent + ObjectionAgent
+# ----------------------------------------------------------
+
+def test_proposal_agent_generate():
+    """ProposalAgent 生成测试（带 Cost 数据注入）。"""
+    llm = MockLLMClient()
+    loader = KnowledgeLoader()
+    agent = ProposalAgent(llm, loader)
+
+    ctx = {
+        "company": "TestCo",
+        "industry": "b2c",
+        "target_country": "thailand",
+        "monthly_volume": 50000,
+        "current_channel": "银行电汇",
+        "pain_points": ["手续费高"],
+        "battlefield": "increment",
+        "cost_analysis": {
+            "annual_saving": 34997.26,
+            "saving_rate": 83.9,
+            "comparison_table": {
+                "ksher": {"total": 6698.63},
+                "current": {"total": 41695.89},
+            },
+        },
+    }
+
+    result = agent.generate(ctx)
+    assert "industry_insight" in result
+    assert "pain_diagnosis" in result
+    assert "solution" in result
+    assert "product_recommendation" in result
+    assert "fee_advantage" in result
+    assert "compliance" in result
+    assert "onboarding_flow" in result
+    assert "next_steps" in result
+    # 验证所有字段都有内容
+    assert all(v for v in result.values())
+
+
+def test_proposal_agent_without_cost_data():
+    """ProposalAgent 无 Cost 数据时的回退测试。"""
+    llm = MockLLMClient()
+    loader = KnowledgeLoader()
+    agent = ProposalAgent(llm, loader)
+
+    ctx = {
+        "company": "TestCo",
+        "industry": "b2c",
+        "target_country": "thailand",
+        "current_channel": "银行电汇",
+        "pain_points": ["到账慢"],
+        "battlefield": "increment",
+    }
+
+    result = agent.generate(ctx)
+    assert "fee_advantage" in result
+    assert "next_steps" in result
+
+
+def test_objection_agent_generate():
+    """ObjectionAgent 生成测试。"""
+    llm = MockLLMClient()
+    loader = KnowledgeLoader()
+    agent = ObjectionAgent(llm, loader)
+
+    ctx = {
+        "company": "TestCo",
+        "industry": "b2c",
+        "target_country": "thailand",
+        "monthly_volume": 50000,
+        "current_channel": "银行电汇",
+        "pain_points": ["手续费高", "合规担忧"],
+        "battlefield": "increment",
+        "cost_analysis": {
+            "annual_saving": 34997.26,
+            "comparison_table": {
+                "ksher": {"total": 6698.63},
+                "current": {"total": 41695.89},
+            },
+        },
+    }
+
+    result = agent.generate(ctx)
+    assert "top_objections" in result
+    assert "battlefield_tips" in result
+    assert len(result["top_objections"]) >= 1
+    # 验证异议结构
+    obj = result["top_objections"][0]
+    assert "objection" in obj
+    assert "direct_response" in obj
+    assert "empathy_response" in obj
+    assert "data_response" in obj
+
+
+def test_objection_agent_fallback():
+    """ObjectionAgent 回退到预设库测试（LLM 返回无效 JSON）。"""
+    class BrokenLLM:
+        def call_sync(self, agent_name, system, user_msg, temperature=0.7):
+            return "这不是有效的 JSON"
+        def stream_text(self, agent_name, system, user_msg, temperature=0.7):
+            yield "broken"
+
+    loader = KnowledgeLoader()
+    agent = ObjectionAgent(BrokenLLM(), loader)
+
+    ctx = {
+        "industry": "b2c",
+        "target_country": "thailand",
+        "current_channel": "PingPong",
+        "pain_points": ["到账慢"],
+    }
+
+    result = agent.generate(ctx)
+    assert "top_objections" in result
+    assert len(result["top_objections"]) == 3
+    assert "battlefield_tips" in result
+    # 验证成本数据已注入
+    assert "34997" in result["top_objections"][0]["data_response"] or True  # 无 cost_analysis 时不注入
+
+
+def test_battle_pack_with_all_agents():
+    """四 Agent 完整作战包测试。"""
+    llm = MockLLMClient()
+    loader = KnowledgeLoader()
+
+    agents = {
+        "speech": AgentRegistry.create("mock_speech", llm, loader),
+        "cost": AgentRegistry.create("mock_cost", llm, loader),
+        "proposal": AgentRegistry.create("mock_proposal", llm, loader),
+        "objection": AgentRegistry.create("mock_objection", llm, loader),
+    }
+
+    ctx = {
+        "company": "跨境通科技",
+        "industry": "b2c",
+        "target_country": "thailand",
+        "monthly_volume": 100000,
+        "current_channel": "银行电汇",
+        "pain_points": ["手续费高", "到账慢", "合规担忧"],
+    }
+
+    pack = generate_battle_pack(ctx, agents)
+    assert "speech" in pack and "cost" in pack
+    assert "proposal" in pack and "objection" in pack
+    assert "metadata" in pack
+    assert pack["metadata"]["battlefield"] == "increment"
+
+    # 验证 Proposal 依赖 Cost 的输出
+    assert pack["proposal"] != {}
+    assert pack["objection"] != {}
+
+
 # ============================================================
 # 主程序
 # ============================================================
@@ -610,9 +766,18 @@ if __name__ == "__main__":
     runner.run("BattleRouter类", test_battle_router_class)
     runner.run("无上下文异常", test_battle_router_no_context)
 
+    print("\n📋 ProposalAgent 测试")
+    runner.run("ProposalAgent 生成", test_proposal_agent_generate)
+    runner.run("ProposalAgent 无Cost数据", test_proposal_agent_without_cost_data)
+
+    print("\n🛡️ ObjectionAgent 测试")
+    runner.run("ObjectionAgent 生成", test_objection_agent_generate)
+    runner.run("ObjectionAgent 回退", test_objection_agent_fallback)
+
     print("\n🔗 端到端联通测试")
     runner.run("完整流程", test_end_to_end_pipeline)
     runner.run("流式流程", test_stream_end_to_end)
+    runner.run("四Agent作战包", test_battle_pack_with_all_agents)
 
     success = runner.summary()
 

@@ -533,6 +533,132 @@ Demo可在线访问 + UI美化 + 演示脚本熟练
 
 ---
 
+## Day 5 — 部署前最终检查（2026-04-18）
+
+### 终端3（知识工程师）Day 5 任务清单
+
+执行 P0~P3 四项检查，产出部署前知识库检查报告。
+
+#### P0：部署前知识库最终检查
+
+| # | 任务 | 结果 | 备注 |
+|---|------|------|------|
+| 1 | Git 提交完整性 | ✅ 通过 | knowledge/ + prompts/ 共 37 个文件已跟踪 |
+| 2 | index.json 有效性 | ✅ 通过 | version=1.2, 33 个文档, 无悬空引用, 无重复 ID |
+| 3 | 文件大小检查 | ✅ 通过 | 所有 .md 单文件 ≤ 1833 字（fee_structure.md 6492 字为数据文件除外） |
+
+#### P1：演示场景最终校验
+
+| # | 任务 | 结果 | 备注 |
+|---|------|------|------|
+| 4 | 场景A（银行客户） | ✅ 通过 | 深圳外贸/B2B/泰国/80万/招行电汇 → 增量战场 |
+| 5 | 场景B（竞品客户） | ✅ 通过 | 义乌Shopee/B2C/泰国+马来/30万/PingPong → 存量战场 |
+| 6 | Q&A 评审库 | ✅ 通过 | 13 个问题 / 4 个分类（产品技术/商业模式/技术实现/市场定位），覆盖费率/合规/竞品/时效/技术 5 类 |
+
+#### P2：部署环境适配
+
+| # | 任务 | 结果 | 备注 |
+|---|------|------|------|
+| 7 | 路径兼容性 | ✅ 通过 | 无空格文件名、无大小写冲突、无 Windows 路径 |
+| 8 | Prompt 语法检查 | ✅ 通过 | 5 个 Prompt 文件全部 import 通过，无 SyntaxError |
+
+#### P3：查漏补缺
+
+| # | 任务 | 结果 | 备注 |
+|---|------|------|------|
+| 9 | 知识库内容补充 | ✅ 已覆盖 | 泰国B2C费率✅ 马来B2B详情✅ WorldFirst费率✅ 开户资料清单✅ |
+| 10 | Prompt 微调 | ✅ 已完成 | ProposalAgent JSON 引号修复 + 字数验证增强（见下方） |
+
+#### Day 4 遗留问题修复（ProposalAgent）
+
+**根因**：LLM 在 JSON 字符串值内部使用 ASCII 双引号 `"`（如 `"泰国4.0"`），导致 JSON 语法错误 → 解析失败 → 全部 fallback 到 50-70 字默认值。
+
+**修复内容**（`agents/proposal_agent.py`）：
+1. JSON 模板值从 10-20 字扩展为 200+ 字占位段落（Claude 模仿效应）
+2. `generate()` 增加 `_repair_json_quotes()` 修复步骤 — 逐行修复值内未转义引号
+3. `_parse_text_response` 优先提取 markdown JSON 代码块
+4. `_validate_output` 增加最小 150 字验证
+
+**修复后 E2E 验证**：8/8 字段全部 400+ 字符 ✅
+
+| 字段 | 修复前 | 修复后 |
+|------|--------|--------|
+| industry_insight | 57 ❌ | 431 ✅ |
+| pain_diagnosis | 52 ❌ | 449 ✅ |
+| solution | 62 ❌ | 465 ✅ |
+| product_recommendation | 48 ❌ | 472 ✅ |
+| fee_advantage | 52 ❌ | 468 ✅ |
+| compliance | 54 ❌ | 428 ✅ |
+| onboarding_flow | 71 ❌ | 485 ✅ |
+| next_steps | 672 | 462 ✅ |
+
+#### 发现的新问题
+
+| 问题 | 位置 | 严重程度 | 处理 |
+|------|------|---------|------|
+| SpeechAgent wechat_followup 仅 3 字符 | `agents/speech_agent.py` JSON 模板值过短 | 中 | **已修复** — 模板值扩展为 200+ 字占位段落 + 新增 `_repair_json_quotes` + `_parse_text_response` 优先提取 markdown JSON |
+
+---
+
+## Day 5 — 联调部署（2026-04-18）
+
+### 终端1（后端架构师）部署前检查报告
+
+| 检查项 | 结果 | 详情 |
+|--------|------|------|
+| Python 语法检查（14个文件） | ✅ 14/14 通过 | agents/7个 + services/5个 + orchestrator/1个 |
+| 模块导入检查（15个模块） | ✅ 15/15 通过 | config + agents/7 + services/5 + orchestrator/1 |
+| index.json agent_doc_map | ✅ 通过 | 所有 doc_id 引用有效，无悬空引用 |
+| BattleRouter 核心逻辑 | ✅ 通过 | detect_battlefield / enrich_context / init / get_battlefield |
+| CostCalculator 计算引擎 | ✅ 通过 | 银行场景年省¥34,997 / PingPong场景年省¥3,399 |
+| KnowledgeLoader 知识加载 | ✅ 通过 | 4个Agent各加载 12,876-19,011 字符 |
+| ResultCache 缓存服务 | ✅ 通过 | miss/set/hit/不同Agent隔离/stats 全部正常 |
+| AgentRegistry 注册表 | ✅ 通过 | 7个Agent全部自动注册 |
+| BenchmarkCollector 性能统计 | ✅ 通过 | 记录/report/flush 正常 |
+| App Initializer 初始化 | ✅ 通过 | BattleRouter + 4核心Agent 初始化模式正常 |
+| Agent 结构完整性 | ✅ 通过 | 7个Agent全部含 generate/build_system_prompt/build_user_message/@agent_register |
+| Git 跟踪状态 | ✅ 通过 | agents/ services/ orchestrator/ tests/ 共 27 个文件已跟踪 |
+
+#### 代码质量总结
+
+**后端模块清单（15个文件）**：
+
+| 模块 | 职责 | 状态 |
+|------|------|------|
+| `agents/base_agent.py` | Agent抽象基类 + 注册表 + JSON安全解析 | ✅ |
+| `agents/speech_agent.py` | 话术Agent（电梯话术/完整讲解/微信跟进 + 引号修复） | ✅ |
+| `agents/cost_agent.py` | 成本Agent（调用计算器 + LLM解读话术） | ✅ |
+| `agents/proposal_agent.py` | 方案Agent（8章方案 + JSON引号修复 + 150字验证） | ✅ |
+| `agents/objection_agent.py` | 异议Agent（Top3预判 + 3种回复策略） | ✅ |
+| `agents/content_agent.py` | 内容Agent（4场景×4语气营销文案） | ✅ |
+| `agents/knowledge_agent.py` | 知识Agent（5类问题预设 + 置信度标识） | ✅ |
+| `agents/design_agent.py` | 设计Agent（4主题海报 + 9页PPT大纲） | ✅ |
+| `services/llm_client.py` | 多模型客户端（Kimi+Claude + 3次重试 + 降级） | ✅ |
+| `services/knowledge_loader.py` | 知识库加载器（按Agent选择性注入 + 文件缓存） | ✅ |
+| `services/cost_calculator.py` | 成本计算引擎（纯Python 5项成本精确计算） | ✅ |
+| `services/app_initializer.py` | App启动初始化（Router+4核心Agent注册） | ✅ |
+| `services/result_cache.py` | 结果缓存（5min TTL + 相似画像匹配 + 单例） | ✅ |
+| `services/benchmark.py` | 性能基准统计（Agent耗时/缓存命中率/成功率） | ✅ |
+| `orchestrator/battle_router.py` | 战场路由（两阶段半并行 + 串行回退 + 流式） | ✅ |
+
+**测试文件清单（7个文件）**：
+
+| 文件 | 说明 | 状态 |
+|------|------|------|
+| `test_integration.py` | 集成测试 | ✅ |
+| `test_battle_pack_e2e.py` | Mock作战包端到端测试 | ✅ |
+| `test_real_llm.py` | 真实LLM端到端测试 | ✅ |
+| `test_e2e_real_llm.py` | 真实LLM E2E测试 | ✅ |
+| `test_prompts.py` | Prompt质量自动化检查 | ✅ |
+| `test_llm_prompts.py` | LLM Prompt注入测试 | ✅ |
+| `screenshot_battle_pack.py` | 作战包截图工具 | ✅ |
+
+### Day 5 完成度
+
+**100% 代码就绪** — 后端全部 15 个模块语法正确、导入正常、核心逻辑测试通过，无阻塞问题，可部署。
+
+---
+
 ## Day 7 — 提交日（2026-04-22）
 
 ### 今日目标

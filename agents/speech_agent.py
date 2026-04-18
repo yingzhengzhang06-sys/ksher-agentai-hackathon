@@ -67,8 +67,38 @@ class SpeechAgent(BaseAgent):
             parsed["battlefield"] = battlefield
             return parsed
 
+        # 尝试 2：修复值内部未转义的 ASCII 双引号
+        repaired_text = self._repair_json_quotes(text)
+        if repaired_text != text:
+            parsed2 = self._safe_parse_json(repaired_text)
+            if parsed2 and all(k in parsed2 for k in ("elevator_pitch", "full_talk", "wechat_followup")):
+                parsed2["battlefield"] = battlefield
+                return parsed2
+
         # 解析失败：回退到文本分块解析
         return self._parse_text_response(text, battlefield)
+
+    def _repair_json_quotes(self, text: str) -> str:
+        """修复 JSON 值内部未转义的 ASCII 双引号。"""
+        match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
+        if not match:
+            return text
+
+        content = match.group(1)
+
+        def _fix_line(line: str) -> str:
+            m = re.match(r'^(\s*"[^"]+":\s*")(.*?)"(,?)$', line)
+            if m:
+                prefix, value, comma = m.groups()
+                value = value.replace('"', r'\"')
+                return prefix + value + '"' + (comma or '')
+            return line
+
+        lines = content.split('\n')
+        repaired = '\n'.join(_fix_line(l) for l in lines)
+        if repaired != content:
+            return text.replace(content, repaired)
+        return text
 
     def build_system_prompt(self, knowledge: str) -> str:
         """构建 System Prompt（注入知识库和战场策略）"""
@@ -100,9 +130,9 @@ class SpeechAgent(BaseAgent):
             f"",
             f"```json",
             f"{{",
-            f'  "elevator_pitch": "30秒电梯话术，用于破冰",',
-            f'  "full_talk": "3分钟完整讲解，分3段：切痛点→给方案→促行动",',
-            f'  "wechat_followup": "微信跟进话术：首次添加+后续跟进",',
+            f'  "elevator_pitch": "此处写一段 80-120 字的电梯话术。开场 3 秒必须抓住注意力——先点出客户的行业痛点（如手续费高、到账慢），然后用一句话引出 Ksher 的核心优势（本地牌照+T+1到账+透明费率），最后给出一个具体可量化的利益点。语气要自然不做作，像朋友间分享信息，不要像销售在背话术。示例思路：您现在用XX收款，每月除了手续费还有XX隐性成本，Ksher能帮您省XX。",',
+            f'  "full_talk": "此处写一段 400-600 字的完整讲解话术，严格分三段。第一段（1分钟）切痛点：用具体数字和场景描述客户的收款困境，让客户感同身受；第二段（1分钟）给方案：对应每个痛点给出 Ksher 的解决方案，引用具体费率和到账时间数据增加说服力；第三段（1分钟）促行动：给出一个明确的下一步动作（如算一笔账、安排15分钟会议、发一份对比表），降低客户决策门槛。每段之间用自然过渡衔接，不要生硬分段。",',
+            f'  "wechat_followup": "此处写一段 200-400 字的微信跟进话术，包含两个部分。第一部分：首次添加好友时的破冰话术——自我介绍+价值提供（如发资料、算成本），不推销、不催促，重点建立信任；第二部分：添加后 3-7 天的跟进话术——针对客户可能的沉默或犹豫，给出一个新的价值点（如最新行业数据、其他客户案例），保持温和但持续的跟进节奏。语气要像真人代理商，有温度，不像品牌官方号群发。",',
             f'  "battlefield": "{battlefield}"',
             f"}}",
             f"```",
@@ -117,7 +147,7 @@ class SpeechAgent(BaseAgent):
     def _parse_text_response(self, text: str, battlefield: str) -> dict:
         """
         当 LLM 没有返回标准 JSON 时的回退解析。
-        按标题分块提取内容。
+        优先提取 markdown JSON 代码块，其次按标题分块提取。
         """
         result = {
             "elevator_pitch": "",
@@ -126,11 +156,24 @@ class SpeechAgent(BaseAgent):
             "battlefield": battlefield,
         }
 
-        # 尝试匹配各个部分
+        # 优先尝试提取 markdown JSON 代码块
+        json_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
+        if json_match:
+            try:
+                parsed = json.loads(json_match.group(1).strip())
+                for key in result:
+                    if key in parsed and parsed[key]:
+                        result[key] = str(parsed[key]).strip()
+                if sum(1 for v in result.values() if v) >= 3:
+                    return result
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        # 回退：按标题分块提取内容
         patterns = {
-            "elevator_pitch": r"(?:30秒电梯话术|电梯话术|Elevator Pitch| elevator_pitch).*?[\n:：](.+?)(?=\n##|\n### |\n\{\{|\Z)",
-            "full_talk": r"(?:3分钟完整讲解|完整讲解|Full Talk|full_talk).*?[\n:：](.+?)(?=\n##|\n### |\n\{\{|\Z)",
-            "wechat_followup": r"(?:微信跟进话术|微信话术|跟进话术|WeChat|wechat_followup|首次添加|后续跟进|添加好友).*?[\n:：](.+?)(?=\n##|\n### |\n\{\{|\Z)",
+            "elevator_pitch": r"(?:30秒电梯话术|电梯话术|Elevator Pitch|elevator_pitch).*?[\n:：](.+?)(?=\n##|\n### |\Z)",
+            "full_talk": r"(?:3分钟完整讲解|完整讲解|Full Talk|full_talk).*?[\n:：](.+?)(?=\n##|\n### |\Z)",
+            "wechat_followup": r"(?:微信跟进话术|微信话术|跟进话术|WeChat|wechat_followup|首次添加|后续跟进|添加好友).*?[\n:：](.+?)(?=\n##|\n### |\Z)",
         }
 
         for key, pattern in patterns.items():

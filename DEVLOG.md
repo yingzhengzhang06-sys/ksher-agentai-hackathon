@@ -990,6 +990,80 @@ Demo可在线访问 + UI美化 + 演示脚本熟练
 - [x] 所有材料已按主办方要求命名和格式整理
 - [ ] 提前30分钟到达路演现场/登录线上会议室
 
+## 提交后维护 — UI 优化与功能增强（2026-04-19）
+
+### 今日目标
+清理 emoji、优化复制交互、增强海报生成能力
+
+### 产出
+
+| # | 任务 | 文件 | 说明 | 状态 |
+|---|------|------|------|------|
+| 1 | emoji 全面清理 | 12 个文件 | 移除所有页面标题/按钮/spinner/success/状态指示器中的 emoji，改为纯文字或 CSS 圆点 | ✅ |
+| 2 | 复制按钮增强 | `ui/components/error_handlers.py` | 新增 `render_copy_button()` — HTML+JS 一键复制，不触发 Streamlit rerun，带"已复制"反馈 | ✅ |
+| 3 | 复制交互修复 | 5 个文件 | content_factory/battle_pack_display/design_studio/objection_sim 去掉 expander 隐藏，复制按钮直接外露 | ✅ |
+| 4 | 海报生成器 | `services/poster_generator.py` | Pillow 纯 Python 动态生成 750×1400px PNG，支持 7 国 × 3 业务类型 | ✅ |
+| 5 | 海报库集成 | `ui/pages/design_studio.py` | 3 个 Tab：海报库浏览下载 / 动态生成 / PPT 大纲 | ✅ |
+| 6 | 预生成海报归档 | `assets/posters/` | 4 张代表性海报纳入 Git，其余通过 .gitignore 排除 | ✅ |
+
+### emoji 清理详情
+
+**涉及文件**：`sidebar.py` / `battle_station.py` / `content_factory.py` / `knowledge_qa.py` / `objection_sim.py` / `dashboard.py` / `design_studio.py` / `battle_pack_display.py` / `customer_input_form.py` / `error_handlers.py` / `config.py`
+
+**清理范围**：
+- 侧边栏导航：⚔️📝📚🛡️🎨📊 → 纯文字
+- 页面标题、按钮、spinner、success 消息
+- 状态指示器：✅⏳ → CSS 圆点
+- 模板内容 emoji：全部移除
+
+### 复制按钮设计
+
+```python
+def render_copy_button(text: str, label: str = "复制文案"):
+    # HTML button + JS navigator.clipboard.writeText()
+    # 点击后 1.5s 显示"已复制"（绿色）后自动恢复
+    # 不触发 Streamlit rerun
+```
+
+**应用位置**：
+- content_factory：每条文案 + 全部内容
+- battle_pack_display：全部话术 + 完整方案
+- design_studio：海报文案 + PPT 大纲
+- objection_sim：直接回应 / 共情回应 / 数据回应
+
+### 海报生成器
+
+**技术方案**：Pillow 纯 Python 绘制（兼容 Streamlit Cloud，无需 Chromium）
+
+**支持组合**：
+- 国家：泰国 / 马来西亚 / 菲律宾 / 印尼 / 越南 / 新加坡 / 香港
+- 业务：B2B 货物贸易 / B2C 跨境电商 / 服务贸易
+
+**品牌风格**：
+- 红色渐变背景（#FF6B5B → #FFB884）
+- 白色圆角卡片（圆角 12px）
+- 红色 CTA 按钮 + 白色 Footer
+- Ksher Logo + Slogan「出海无难事 现在就开时」
+
+### 验证结果
+
+- ✅ 12 个文件语法检查全部通过
+- ✅ 复制按钮 HTML 渲染正常（单行字符串避免 Markdown 代码块误解析）
+- ✅ Pillow 海报生成测试通过（B2B/B2C/Service 三种类型）
+- ✅ Streamlit 页面截图验证通过
+- ✅ Git 工作区干净，已推送
+
+### Git 提交
+
+```
+77798ae fix(ui): 清理所有前端页面剩余 emoji
+2129e20 fix(ui): 清理 design_studio + knowledge_qa 剩余 emoji
+9aeacfc feat(poster): 海报生成器 + design_studio 集成
+0bbe806 chore: 添加海报生成 gitignore 规则
+```
+
+---
+
 ### 提交后
 
 - [ ] 记录评审反馈

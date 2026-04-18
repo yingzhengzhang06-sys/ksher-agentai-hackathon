@@ -117,14 +117,15 @@ streamlit run app.py
 │   ├── cost_calculator.py          # 成本计算引擎（纯Python，5项精确计算）✅
 │   ├── app_initializer.py          # App启动初始化（Router+Agent注册）✅
 │   ├── result_cache.py             # Agent结果缓存（5min TTL+相似画像匹配）✅
-│   └── benchmark.py                # Agent性能基准统计（耗时/缓存命中率/成功率）✅
+│   ├── benchmark.py                # Agent性能基准统计（耗时/缓存命中率/成功率）✅
+│   └── poster_generator.py         # 海报生成器（Pillow动态生成PNG）✅
 ├── ui/                             # UI组件
 │   ├── pages/                      # 各页面
 │   │   ├── battle_station.py       # 一键备战（Mock+真实双模式）✅
 │   │   ├── content_factory.py      # 内容工厂 ✅
 │   │   ├── knowledge_qa.py         # 知识问答 ✅
 │   │   ├── objection_sim.py        # 异议模拟（3种训练模式）✅
-│   │   ├── design_studio.py        # 海报/PPT（4主题海报+9页PPT）✅
+│   │   ├── design_studio.py        # 设计工作室（海报库浏览+动态生成+PPT大纲）✅
 │   │   └── dashboard.py            # 仪表盘（Plotly可视化）✅
 │   ├── components/                 # 可复用组件
 │   │   ├── sidebar.py              # 侧边栏导航 ✅
@@ -137,7 +138,8 @@ streamlit run app.py
 │   └── mock_dashboard.json         # 仪表盘模拟数据
 ├── assets/                         # 静态资源
 │   ├── logo.png                    # Ksher Logo
-│   └── brand_colors.json           # 品牌色值
+│   ├── brand_colors.json           # 品牌色值
+│   └── posters/                    # 预生成海报库（公司介绍/B2B/B2C/服务贸易）
 └── tests/                          # 测试
     ├── test_integration.py         # 集成测试 ✅
     ├── test_battle_pack_e2e.py     # Mock作战包端到端测试 ✅
@@ -159,7 +161,7 @@ streamlit run app.py
 | 编排 | ThreadPoolExecutor | 两阶段半并行（Phase1并行/Phase2串行） |
 | 知识库 | 本地Markdown | Prompt注入（<100K tokens），V2升级RAG |
 | 图表 | Plotly | 成本对比可视化 |
-| PPT生成 | python-pptx | 方案PPT导出（待实现） |
+| 海报生成 | Pillow | Ksher 品牌风格 PNG 动态生成（750×1400px） |
 
 ---
 
@@ -196,7 +198,14 @@ streamlit run app.py
 
 详见 [DEVLOG.md](./DEVLOG.md)
 
-### 最近更新（Day 6）
+### 最近更新（提交后维护 — 2026-04-19）
+- **emoji 全面清理** — 移除所有页面标题/按钮/spinner/success/状态指示器中的 emoji，改为纯文字或 CSS 圆点
+- **一键复制按钮** — 新增 `render_copy_button()` 通用组件：HTML+JS 实现，点击不触发 Streamlit rerun，带"已复制"绿色反馈
+- **复制交互优化** — 内容工厂/作战包/海报/PPT/异议模拟全部去掉 expander 隐藏，复制按钮直接外露
+- **海报生成器** — Pillow 纯 Python 动态生成 750×1400px PNG，支持 7 国 × 3 业务类型（B2B/B2C/服务贸易）
+- **海报库集成** — 4 张代表性预生成海报 + 分类浏览下载 + 动态生成三合一
+
+### Day 6 已完成
 - **Apple 风格 UI 全面升级** — 参照苹果官网设计语言：白底极简/大量留白/药丸按钮/无阴影卡片
 - 品牌色彩系统浅色化：`#0F0F1A`→`#FFFFFF`，`#1E1E2F`→`#F5F5F7`（Apple Gray）
 - 按钮药丸化：`border-radius: 9999px`，去掉阴影和位移动效

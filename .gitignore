@@ -43,3 +43,4 @@ tests/e2e_battle_pack_result.json
 # 临时文件
 *.tmp
 *.log
+tests/llm_output.json

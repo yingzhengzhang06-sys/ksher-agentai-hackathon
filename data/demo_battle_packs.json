@@ -1,0 +1,323 @@
+{
+  "generated_at": "2026-04-18",
+  "scenarios": [
+    {
+      "name": "场景A — 银行客户（增量战场）",
+      "context": {
+        "company": "深圳外贸工厂",
+        "industry": "b2b",
+        "target_country": "thailand",
+        "monthly_volume": 800000,
+        "current_channel": "银行电汇",
+        "pain_points": [
+          "手续费高",
+          "到账慢",
+          "合规担忧"
+        ],
+        "battlefield": "increment"
+      },
+      "cost_analysis": {
+        "ksher": {
+          "fee": 38400.0,
+          "fx_loss": 19200.0,
+          "time_cost": 1578.08,
+          "mgmt_cost": 0,
+          "compliance_cost": 9600.0,
+          "total": 68778.08,
+          "compliance_note": "持有东南亚多国本地支付牌照，资金本地清算，合规链路短"
+        },
+        "current": {
+          "fee": 554400.0,
+          "fx_loss": 76800.0,
+          "time_cost": 4734.25,
+          "mgmt_cost": 9600.0,
+          "compliance_cost": 28800.0,
+          "total": 674334.25,
+          "compliance_note": "银行合规完善，但跨境回款链路长，存在中间行退单风险"
+        },
+        "annual_saving": 605556.17,
+        "monthly_saving": 50463.01,
+        "saving_rate": 89.8,
+        "comparison_table": {
+          "ksher": {
+            "fee": 38400.0,
+            "fx_loss": 19200.0,
+            "time_cost": 1578.08,
+            "mgmt_cost": 0,
+            "compliance_cost": 9600.0,
+            "total": 68778.08
+          },
+          "current": {
+            "fee": 554400.0,
+            "fx_loss": 76800.0,
+            "time_cost": 4734.25,
+            "mgmt_cost": 9600.0,
+            "compliance_cost": 28800.0,
+            "total": 674334.25
+          }
+        },
+        "chart_data": {
+          "bar": {
+            "data": [
+              {
+                "x": [
+                  "显性手续费",
+                  "汇率损失",
+                  "资金时间成本",
+                  "多平台管理",
+                  "合规风险"
+                ],
+                "y": [
+                  554400.0,
+                  76800.0,
+                  4734.25,
+                  9600.0,
+                  28800.0
+                ],
+                "name": "银行电汇",
+                "type": "bar",
+                "marker": {
+                  "color": "#6B6B7B"
+                }
+              },
+              {
+                "x": [
+                  "显性手续费",
+                  "汇率损失",
+                  "资金时间成本",
+                  "多平台管理",
+                  "合规风险"
+                ],
+                "y": [
+                  38400.0,
+                  19200.0,
+                  1578.08,
+                  0,
+                  9600.0
+                ],
+                "name": "Ksher",
+                "type": "bar",
+                "marker": {
+                  "color": "#E83E4C"
+                }
+              }
+            ],
+            "layout": {
+              "barmode": "group",
+              "title": "年度收款成本对比（元）",
+              "yaxis": {
+                "title": "年度成本（元）"
+              },
+              "paper_bgcolor": "rgba(0,0,0,0)",
+              "plot_bgcolor": "rgba(0,0,0,0)",
+              "font": {
+                "color": "#FFFFFF"
+              }
+            }
+          },
+          "pie": {
+            "data": [
+              {
+                "values": [
+                  674334.25,
+                  605556.17
+                ],
+                "labels": [
+                  "银行电汇 成本",
+                  "切换到 Ksher 节省"
+                ],
+                "type": "pie",
+                "marker": {
+                  "colors": [
+                    "#6B6B7B",
+                    "#00C9A7"
+                  ]
+                },
+                "hole": 0.4
+              }
+            ],
+            "layout": {
+              "title": "成本结构占比",
+              "paper_bgcolor": "rgba(0,0,0,0)",
+              "font": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        },
+        "details": {
+          "monthly_volume": 800000,
+          "monthly_transactions": 228,
+          "current_channel": "银行电汇",
+          "target_country": "thailand",
+          "industry": "b2b",
+          "ksher_config": {
+            "currency": "THB",
+            "fee_rate": 0.004,
+            "fx_benchmark": "泰国中行零售牌价",
+            "settlement_days": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "场景B — 竞品客户（存量战场）",
+      "context": {
+        "company": "义乌Shopee卖家",
+        "industry": "b2c",
+        "target_country": "thailand",
+        "monthly_volume": 300000,
+        "current_channel": "PingPong",
+        "pain_points": [
+          "汇率损失大",
+          "多平台管理难"
+        ],
+        "battlefield": "stock"
+      },
+      "cost_analysis": {
+        "ksher": {
+          "fee": 28800.0,
+          "fx_loss": 7200.0,
+          "time_cost": 591.78,
+          "mgmt_cost": 0,
+          "compliance_cost": 3600.0,
+          "total": 40191.78,
+          "compliance_note": "持有东南亚多国本地支付牌照，资金本地清算，合规链路短"
+        },
+        "current": {
+          "fee": 28800.0,
+          "fx_loss": 18000.0,
+          "time_cost": 1183.56,
+          "mgmt_cost": 1800.0,
+          "compliance_cost": 10800.0,
+          "total": 60583.56,
+          "compliance_note": "第三方跨境支付平台，无东南亚本地央行牌照，资金需经多层中转"
+        },
+        "annual_saving": 20391.78,
+        "monthly_saving": 1699.31,
+        "saving_rate": 33.7,
+        "comparison_table": {
+          "ksher": {
+            "fee": 28800.0,
+            "fx_loss": 7200.0,
+            "time_cost": 591.78,
+            "mgmt_cost": 0,
+            "compliance_cost": 3600.0,
+            "total": 40191.78
+          },
+          "current": {
+            "fee": 28800.0,
+            "fx_loss": 18000.0,
+            "time_cost": 1183.56,
+            "mgmt_cost": 1800.0,
+            "compliance_cost": 10800.0,
+            "total": 60583.56
+          }
+        },
+        "chart_data": {
+          "bar": {
+            "data": [
+              {
+                "x": [
+                  "显性手续费",
+                  "汇率损失",
+                  "资金时间成本",
+                  "多平台管理",
+                  "合规风险"
+                ],
+                "y": [
+                  28800.0,
+                  18000.0,
+                  1183.56,
+                  1800.0,
+                  10800.0
+                ],
+                "name": "PingPong",
+                "type": "bar",
+                "marker": {
+                  "color": "#6B6B7B"
+                }
+              },
+              {
+                "x": [
+                  "显性手续费",
+                  "汇率损失",
+                  "资金时间成本",
+                  "多平台管理",
+                  "合规风险"
+                ],
+                "y": [
+                  28800.0,
+                  7200.0,
+                  591.78,
+                  0,
+                  3600.0
+                ],
+                "name": "Ksher",
+                "type": "bar",
+                "marker": {
+                  "color": "#E83E4C"
+                }
+              }
+            ],
+            "layout": {
+              "barmode": "group",
+              "title": "年度收款成本对比（元）",
+              "yaxis": {
+                "title": "年度成本（元）"
+              },
+              "paper_bgcolor": "rgba(0,0,0,0)",
+              "plot_bgcolor": "rgba(0,0,0,0)",
+              "font": {
+                "color": "#FFFFFF"
+              }
+            }
+          },
+          "pie": {
+            "data": [
+              {
+                "values": [
+                  60583.56,
+                  20391.78
+                ],
+                "labels": [
+                  "PingPong 成本",
+                  "切换到 Ksher 节省"
+                ],
+                "type": "pie",
+                "marker": {
+                  "colors": [
+                    "#6B6B7B",
+                    "#00C9A7"
+                  ]
+                },
+                "hole": 0.4
+              }
+            ],
+            "layout": {
+              "title": "成本结构占比",
+              "paper_bgcolor": "rgba(0,0,0,0)",
+              "font": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        },
+        "details": {
+          "monthly_volume": 300000,
+          "monthly_transactions": 85,
+          "current_channel": "PingPong",
+          "target_country": "thailand",
+          "industry": "b2c",
+          "ksher_config": {
+            "currency": "THB",
+            "fee_rate": 0.008,
+            "fx_benchmark": "泰国中行零售牌价",
+            "settlement_days": 1,
+            "min_fee_local": 15
+          }
+        }
+      }
+    }
+  ]
+}

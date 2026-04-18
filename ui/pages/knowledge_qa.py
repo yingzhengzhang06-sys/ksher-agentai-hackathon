@@ -313,7 +313,7 @@ def render_knowledge_qa():
 
     # ---- 使用提示 ----
     st.markdown("---")
-    with st.expander("💡 提问技巧"):
+    with st.expander("提问技巧"):
         st.markdown(
             "**支持的问题类型：**\n"
             "- 费率咨询：\"泰国B2B收款费率是多少？\"\n"

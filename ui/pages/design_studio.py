@@ -302,7 +302,7 @@ def _render_poster_tab():
         )
 
         # 设计规格
-        with st.expander("📐 设计规格"):
+        with st.expander("设计规格"):
             st.markdown(f"**配色方案**：{poster['color_scheme']}")
             st.markdown(f"**尺寸**：{poster['size']}")
             st.markdown(f"**设计建议**：{poster['tips']}")

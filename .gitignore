@@ -44,3 +44,10 @@ tests/e2e_battle_pack_result.json
 *.tmp
 *.log
 tests/llm_output.json
+
+# 生成的海报（运行时动态生成）
+assets/posters/*.png
+!assets/posters/1-1ksher-company-intro-poster.png
+!assets/posters/1-3ksher-b2b-intro-poster.png
+!assets/posters/1-4ksher-service-trade-combined-poster.png
+!assets/posters/2-2ksher-philippines-b2c-poster.png

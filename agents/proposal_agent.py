@@ -23,7 +23,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.base_agent import BaseAgent, agent_register
-from prompts.system_prompts import PROPOSAL_AGENT_PROMPT
 from prompts.knowledge_fusion_rules import KNOWLEDGE_FUSION_RULES
 from config import BATTLEFIELD_TYPES, AGENT_TEMPERATURE, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
 
@@ -61,21 +60,118 @@ class ProposalAgent(BaseAgent):
         Returns:
             dict: 8 章节方案
         """
+        # ── 第一次调用 ──
         text = self._call_llm_sync(context)
 
+        # 尝试 1：直接解析 JSON
         parsed = self._safe_parse_json(text)
         if parsed and self._validate_output(parsed):
             return parsed
 
-        return self._parse_text_response(text, context)
+        # 尝试 2：修复值内部未转义的 ASCII 双引号（LLM 常在中文文本中用 "引号" 导致 JSON 语法错误）
+        repaired_text = self._repair_json_quotes(text)
+        if repaired_text != text:
+            parsed2 = self._safe_parse_json(repaired_text)
+            if parsed2 and self._validate_output(parsed2):
+                return parsed2
+
+        # 尝试 3：回退解析第一次输出
+        result = self._parse_text_response(text, context)
+        if self._result_quality_ok(result):
+            return result
+
+        # ── 重试：追加更强提醒 ──
+        knowledge = self.knowledge_loader.load(self.agent_name, context)
+        system = self.build_system_prompt(knowledge)
+        user_msg = self.build_user_message(context)
+        user_msg += (
+            "\n\n⚠️ 紧急提醒：上面的 JSON 中各字段的值只是写作指导说明，"
+            "不是实际内容。你必须用自己的分析生成 200 字以上的中文段落，"
+            "替换掉这些指导文字。不要重复\"此处应写...\"之类的示例文字。"
+        )
+        text2 = self.llm_client.call_sync(
+            agent_name=self.agent_name,
+            system=system,
+            user_msg=user_msg,
+            temperature=self.temperature,
+        )
+
+        # 第二次：直接解析
+        parsed3 = self._safe_parse_json(text2)
+        if parsed3 and self._validate_output(parsed3):
+            return parsed3
+
+        # 第二次引号修复
+        repaired_text2 = self._repair_json_quotes(text2)
+        if repaired_text2 != text2:
+            parsed4 = self._safe_parse_json(repaired_text2)
+            if parsed4 and self._validate_output(parsed4):
+                return parsed4
+
+        # 第二次回退解析
+        result2 = self._parse_text_response(text2, context)
+        if self._result_quality_ok(result2):
+            return result2
+
+        # 两次都失败，挑更好的
+        return self._pick_better_result(result, result2)
+
+    def _repair_json_quotes(self, text: str) -> str:
+        """
+        修复 JSON 值内部未转义的 ASCII 双引号。
+        LLM 生成中文内容时常用 "引号" 标出词汇，导致 JSON 语法破裂。
+        先用 _safe_parse_json 知道失败后调用此方法。
+        """
+        import re
+
+        # 提取 markdown JSON 代码块
+        match = re.search(
+            r'```(?:json)?\s*\n?(.*?)\n?```',
+            text, re.DOTALL
+        )
+        if not match:
+            return text
+
+        content = match.group(1)
+        # 只修复值内部的引号：前后都是中文或数字的 ASCII 双引号
+        # 字符串边界 " 的前面通常是 : 或 , 或空格，所以不会误伤
+        repaired = re.sub(
+            r'(?<=[\u4e00-\u9fff0-9])"(?=[\u4e00-\u9fff0-9])',
+            r'\\"',
+            content
+        )
+        if repaired != content:
+            return text.replace(content, repaired)
+        return text
 
     def build_system_prompt(self, knowledge: str) -> str:
-        """构建 System Prompt"""
-        prompt = PROPOSAL_AGENT_PROMPT.replace(
-            "{KNOWLEDGE_FUSION_RULES}", KNOWLEDGE_FUSION_RULES
-        )
-        prompt += f"\n\n## 知识库\n\n{knowledge[:2000]}"
-        return prompt
+        """构建 System Prompt — 清理所有未解析占位符的版本。"""
+        # 将知识库注入融合规则，避免 {knowledge_text} 留在 prompt 中
+        rules = KNOWLEDGE_FUSION_RULES.replace("{knowledge_text}", knowledge[:2000])
+
+        system = f"""你是 Ksher 跨境支付的高级解决方案顾问。任务：为客户生成专业的跨境收款定制方案。
+
+{rules}
+
+- 你有 10 年跨境支付行业经验
+- 你熟悉东南亚各国的监管政策和市场环境
+- 你擅长用商业语言打动 CEO 级别的决策者
+
+## 写作标准
+- 像写给 CEO 看的商业提案，不像产品手册
+- 每个章节是一段完整的分析段落，至少 200 字（约 200 个中文字符）
+- 引用真实数据（费率/到账时间/牌照），增加可信度
+- 深度分析：每个章节要有分析、有洞察、有逻辑递进
+- 不要只列 bullet point——要像写商业报告一样展开论述
+
+## ⚠️ 输出强制要求（最高优先级，不可忽略）
+- 你必须输出完整、合法的 JSON 对象，严格按 User Message 中指定的 8 个字段键名
+- 输出中不要有任何 JSON 格式以外的说明文字
+- 每个字段的值是一段中文长文本段落（至少 200 字）
+- 如果内容短于 200 字，系统会判定为不合格，必须重写
+- 不要使用示例中的指导文字作为实际输出内容（如"此处应写..."），必须替换为真实分析
+"""
+        return system
 
     def build_user_message(self, context: dict) -> str:
         """构建 User Message（客户上下文 + Cost 数据）"""
@@ -116,6 +212,7 @@ class ProposalAgent(BaseAgent):
         lines.extend([
             f"\n## 输出要求",
             f"请生成以下 8 个章节的方案，每个章节至少 200 字，严格按 JSON 格式输出：",
+            f"注意：JSON 字符串值中不能包含英文双引号符号，否则会导致 JSON 语法错误。如果需要在文本中标出某个词，请使用中文引号或直接描述，不要使用 ASCII 双引号。",
             f"",
             f"```json",
             f"{{",
@@ -232,6 +329,41 @@ class ProposalAgent(BaseAgent):
                 result[key] = default
 
         return result
+
+    def _result_quality_ok(self, result: dict) -> bool:
+        """
+        判断回退解析的结果质量是否可接受。
+        要求至少 6/8 个字段非空且每个字段 ≥80 字。
+        """
+        required = [
+            "industry_insight", "pain_diagnosis", "solution",
+            "product_recommendation", "fee_advantage", "compliance",
+            "onboarding_flow", "next_steps",
+        ]
+        ok_count = sum(
+            1 for k in required
+            if result.get(k) and len(str(result[k])) >= 80
+        )
+        return ok_count >= 6
+
+    def _pick_better_result(self, result_a: dict, result_b: dict) -> dict:
+        """
+        比较两次回退解析结果，返回质量更好的那个。
+        如果两个都不够好，依然返回其中更好的一个（减少全默认值概率）。
+        """
+        required = [
+            "industry_insight", "pain_diagnosis", "solution",
+            "product_recommendation", "fee_advantage", "compliance",
+            "onboarding_flow", "next_steps",
+        ]
+
+        def score(r: dict) -> int:
+            return sum(
+                len(str(r.get(k, "")))
+                for k in required
+            )
+
+        return result_b if score(result_b) > score(result_a) else result_a
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import CHANNEL_BATTLEFIELD_MAP, BATTLEFIELD_TYPES
 from services.result_cache import get_cache
+from services.benchmark import BenchmarkCollector
 
 
 def detect_battlefield(current_channel: str) -> str:
@@ -97,9 +98,10 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
         context = enrich_context(context)
 
     battlefield = context["battlefield"]
-    # 缓存实例
+    # 缓存 + 基准统计
     cache = get_cache()
     cache_hits = []
+    benchmark = BenchmarkCollector()
 
     result = {
         "speech": {},
@@ -125,18 +127,22 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
         phase1_agents["objection"] = agents["objection"]
 
     def run_agent(name: str, agent):
-        """运行单个 Agent，返回 (name, result, cached)。"""
+        """运行单个 Agent，返回 (name, result, cached, latency_ms)。"""
+        start = time.time()
         try:
             # Phase 1 Agent（独立）：尝试读取缓存
             cached = cache.get(context, name)
             if cached is not None:
-                return name, cached, True
+                latency = int((time.time() - start) * 1000)
+                return name, cached, True, latency
             # 未命中：调用 LLM 生成
             output = agent.generate(context)
             cache.set(context, output, name)
-            return name, output, False
+            latency = int((time.time() - start) * 1000)
+            return name, output, False, latency
         except Exception as e:
-            return name, {"error": str(e), "_agent": name}, False
+            latency = int((time.time() - start) * 1000)
+            return name, {"error": str(e), "_agent": name}, False, latency
 
     # 使用线程池并行执行
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
@@ -145,32 +151,45 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
             for name, agent in phase1_agents.items()
         }
         for future in concurrent.futures.as_completed(futures):
-            name, output, cached = future.result()
+            name, output, cached, latency_ms = future.result()
             result[name] = output
             if cached:
                 cache_hits.append(name)
+            is_error = "error" in output
+            benchmark.record(
+                agent_name=name, latency_ms=latency_ms,
+                cached=cached, success=not is_error,
+            )
 
     # ==================== 阶段2：串行执行（依赖 Cost）====================
-    # 注意：ProposalAgent 不缓存，因为它的输入包含其他 Agent 的输出
     if "proposal" in agents:
+        proposal_start = time.time()
         proposal_agent = agents["proposal"]
-        # 将 CostAgent 的输出注入 Proposal 的上下文
         proposal_context = dict(context)
         proposal_context["cost_analysis"] = result.get("cost", {})
-        proposal_context["speech_output"] = result.get("speech", {})
-        proposal_context["objection_output"] = result.get("objection", {})
-
         try:
             result["proposal"] = proposal_agent.generate(proposal_context)
+            benchmark.record(
+                agent_name="proposal",
+                latency_ms=int((time.time() - proposal_start) * 1000),
+                cached=False, success=True,
+            )
         except Exception as e:
+            benchmark.record(
+                agent_name="proposal",
+                latency_ms=int((time.time() - proposal_start) * 1000),
+                cached=False, success=False,
+            )
             result["proposal"] = {"error": str(e), "_agent": "proposal"}
 
-    # 计算执行时间
+    # 计算执行时间 + benchmark
     elapsed_ms = int((time.time() - start_time) * 1000)
     result["metadata"]["execution_time_ms"] = elapsed_ms
     result["metadata"]["cache_hits"] = cache_hits
     if cache_hits:
         result["metadata"]["cached"] = True
+    # 附上当次调用的性能快照（仅本 battle pack 的 Agent）
+    result["metadata"]["benchmark"] = benchmark.report(recent_hours=1)["agents"]
 
     return result
 

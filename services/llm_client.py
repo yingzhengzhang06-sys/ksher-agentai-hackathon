@@ -16,22 +16,40 @@ import anthropic
 from openai import OpenAI, APIError
 from dotenv import load_dotenv
 
-# 强制重新加载 .env（确保获取最新的 API Key）
+# 辅助函数：兼容本地 .env 和 Streamlit Cloud secrets
+def _get_secret(key: str, default: str = "") -> str:
+    """优先从 st.secrets 读取，否则从 os.environ / .env 读取"""
+    try:
+        import streamlit as st
+        # Streamlit 环境：优先 st.secrets
+        # 使用 _secrets 内部属性避免触发 _parse（本地无 secrets 时不抛异常）
+        raw_secrets = getattr(st, "_secrets", None)
+        if raw_secrets is not None and hasattr(raw_secrets, "_secrets"):
+            secrets_dict = raw_secrets._secrets
+            if key in secrets_dict:
+                return secrets_dict[key]
+    except Exception:
+        pass
+    # 本地环境：从 os.environ / .env 读取
+    return os.getenv(key, default)
+
+
+# 强制重新加载 .env（确保获取最新的 API Key，本地开发用）
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'), override=True)
 
 # 模型配置
 MODEL_CONFIG = {
     "kimi": {
         "client_type": "openai_compatible",
-        "base_url": os.getenv("KIMI_BASE_URL", "https://api.moonshot.cn/v1"),
-        "api_key": os.getenv("KIMI_API_KEY", ""),
-        "model": os.getenv("MODEL_NAME_KIMI", "kimi-k2.5"),
+        "base_url": _get_secret("KIMI_BASE_URL", "https://api.moonshot.cn/v1"),
+        "api_key": _get_secret("KIMI_API_KEY", ""),
+        "model": _get_secret("MODEL_NAME_KIMI", "kimi-k2.5"),
     },
     "sonnet": {
         "client_type": "openai_compatible",  # Cherry AI 使用 OpenAI 兼容格式
-        "base_url": os.getenv("ANTHROPIC_BASE_URL", "https://open.cherryin.ai/v1"),
-        "api_key": os.getenv("ANTHROPIC_API_KEY", ""),
-        "model": os.getenv("MODEL_NAME_SONNET", "anthropic/claude-sonnet-4.6"),
+        "base_url": _get_secret("ANTHROPIC_BASE_URL", "https://open.cherryin.ai/v1"),
+        "api_key": _get_secret("ANTHROPIC_API_KEY", ""),
+        "model": _get_secret("MODEL_NAME_SONNET", "anthropic/claude-sonnet-4.6"),
     },
 }
 

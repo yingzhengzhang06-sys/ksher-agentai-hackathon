@@ -54,6 +54,15 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 
 # ==========================================
+# 外部知识库源（动态引用，无需复制到项目目录）
+# 格式: [(路径, 描述), ...]
+# 知识库更新后自动生效，无需手动同步
+# ==========================================
+EXTERNAL_KNOWLEDGE_SOURCES = [
+    (os.path.expanduser("~/.qclaw/workspace-agent-cdae0ad6/"), "龙虾知识库"),
+]
+
+# ==========================================
 # Streamlit 配置
 # ==========================================
 STREAMLIT_THEME = os.getenv("STREAMLIT_THEME", "dark")

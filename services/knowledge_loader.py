@@ -9,7 +9,10 @@ import sys
 
 # 确保能导入 config
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import KNOWLEDGE_DIR, BATTLEFIELD_TYPES, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
+from config import (
+    KNOWLEDGE_DIR, BATTLEFIELD_TYPES, INDUSTRY_OPTIONS,
+    COUNTRY_OPTIONS, EXTERNAL_KNOWLEDGE_SOURCES,
+)
 
 
 class KnowledgeLoader:
@@ -110,8 +113,69 @@ class KnowledgeLoader:
             if focus_key in bf_info:
                 parts.append(f"策略重点：{bf_info[focus_key]}\n")
 
+        # 5. 加载外部动态知识库（龙虾等外部源，无需手动同步）
+        external = self._load_external_knowledge(agent_name, context)
+        if external:
+            parts.append(external)
+
         result = "\n".join(parts).strip()
         return result if result else "# 知识库加载完成（暂无匹配文档）"
+
+    def _match_external_file(self, filename: str, agent_name: str, context: dict) -> bool:
+        """判断外部文件是否匹配当前 Agent 和上下文。"""
+        fname = filename.lower()
+        industry = context.get("industry", "")
+        target_country = context.get("target_country", "")
+
+        # B2C 文件 → B2C 场景
+        if "b2c" in fname and industry == "b2c":
+            return True
+        # B2B 货贸（不含 service）→ B2B 场景
+        if "b2b" in fname and "service" not in fname and industry == "b2b":
+            return True
+        # 服务贸易 → service 场景
+        if "service" in fname and industry == "service":
+            return True
+        # 越南相关 → 越南目标国家
+        if "vietnam" in fname and target_country == "vietnam":
+            return True
+        # 通用知识（不含 b2b/b2c 细分）→ 所有 Agent
+        if "knowledge" in fname and "b2b" not in fname and "b2c" not in fname:
+            return True
+        # POBO 产品 → proposal / knowledge
+        if "pobo" in fname and agent_name in ("proposal", "knowledge"):
+            return True
+        return False
+
+    def _load_external_knowledge(self, agent_name: str, context: dict) -> Optional[str]:
+        """加载外部动态知识库（如龙虾知识库）。文件更新后自动生效。"""
+        if not EXTERNAL_KNOWLEDGE_SOURCES:
+            return None
+
+        all_parts = []
+        for source_path, source_label in EXTERNAL_KNOWLEDGE_SOURCES:
+            if not os.path.exists(source_path):
+                continue
+
+            md_files = glob.glob(os.path.join(source_path, "*.md"))
+            matched_parts = []
+            for filepath in sorted(md_files):
+                fname = os.path.basename(filepath)
+                if not self._match_external_file(fname, agent_name, context):
+                    continue
+                content = self._load_file(filepath)
+                if content:
+                    matched_parts.append(
+                        f"\n\n## [{source_label}] {fname}\n\n{content}"
+                    )
+
+            if matched_parts:
+                all_parts.append(
+                    f"\n\n---\n\n# 外部补充知识（{source_label}）\n"
+                    + "".join(matched_parts)
+                )
+
+        return "\n".join(all_parts) if all_parts else None
 
     def _load_file(self, filepath: str) -> Optional[str]:
         """加载单个文件内容（带缓存）"""

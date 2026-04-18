@@ -109,9 +109,9 @@ def _render_kpi_cards(summary: dict):
     col1, col2, col3, col4 = st.columns(4)
     cards = [
         (col1, "👥 总客户数", f"{summary['total_customers']:,}", "人"),
-        (col2, "⚔️ 作战包生成", f"{summary['battle_packs_generated']:,}", "个"),
-        (col3, "💰 累计节省", f"¥{summary['total_savings_calculated']/10000:.1f}", "万"),
-        (col4, "📊 人均节省", f"¥{summary['avg_saving_per_customer']:,}", "元"),
+        (col2, " 作战包生成", f"{summary['battle_packs_generated']:,}", "个"),
+        (col3, " 累计节省", f"¥{summary['total_savings_calculated']/10000:.1f}", "万"),
+        (col4, " 人均节省", f"¥{summary['avg_saving_per_customer']:,}", "元"),
     ]
     for col, label, value, unit in cards:
         with col:

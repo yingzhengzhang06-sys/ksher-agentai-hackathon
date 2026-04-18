@@ -36,7 +36,7 @@ def render_network_error(on_retry=None):
             text-align: center;
             margin: 1rem 0;
         '>
-            <div style='font-size: 2rem; margin-bottom: 0.5rem;'>🌐</div>
+            <div style='font-size: 2rem; margin-bottom: 0.5rem;'></div>
             <div style='font-size: 1.1rem; font-weight: 600; color: #1d2129; margin-bottom: 0.3rem;'>
                 网络连接异常
             </div>
@@ -69,7 +69,7 @@ def render_quota_exceeded():
             text-align: center;
             margin: 1rem 0;
         '>
-            <div style='font-size: 2rem; margin-bottom: 0.5rem;'>⚡</div>
+            <div style='font-size: 2rem; margin-bottom: 0.5rem;'></div>
             <div style='font-size: 1.1rem; font-weight: 600; color: #1d2129; margin-bottom: 0.3rem;'>
                 API 调用额度不足
             </div>
@@ -104,7 +104,7 @@ def render_error(message: str, detail: str = ""):
             margin: 1rem 0;
         '>
             <div style='display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem;'>
-                <span style='font-size: 1.2rem;'>⚠️</span>
+                <span style='font-size: 1.2rem;'></span>
                 <span style='font-size: 1rem; font-weight: 600; color: #1d2129;'>{message}</span>
             </div>
             {f"<div style='font-size: 0.85rem; color: {BRAND_COLORS['text_secondary']}; padding-left: 1.8rem;'>{detail}</div>" if detail else ""}
@@ -196,7 +196,7 @@ def render_mock_fallback_notice(title: str = "", detail: str = ""):
             align-items: center;
             gap: 0.5rem;
         '>
-            <span style='font-size: 1rem;'>⚡</span>
+            <span style='font-size: 1rem;'></span>
             <span style='font-size: 0.8rem; color: #B8860B;'>
                 {msg}{detail_html}
             </span>

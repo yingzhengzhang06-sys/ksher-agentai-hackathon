@@ -33,7 +33,7 @@ def render_speech_tab(speech_data: dict):
             st.markdown(paragraph)
 
     # 复制按钮（显示原始文本）
-    with st.expander("📋 复制全部话术"):
+    with st.expander(" 复制全部话术"):
         all_text = (
             f"【电梯话术】\n{speech_data.get('elevator_pitch', '')}\n\n"
             f"【完整话术】\n{speech_data.get('full_talk', '')}\n\n"
@@ -117,14 +117,14 @@ def render_cost_tab(cost_data: dict, context: dict):
 def render_proposal_tab(proposal_data: dict):
     """渲染方案 Tab"""
     sections = [
-        ("🏭 行业洞察", "industry_insight"),
-        ("🔍 痛点诊断", "pain_diagnosis"),
-        ("💡 解决方案", "solution"),
-        ("📦 产品推荐", "product_recommendation"),
-        ("💰 费率优势", "fee_advantage"),
-        ("🛡️ 合规保障", "compliance"),
-        ("📋 开户流程", "onboarding_flow"),
-        ("🚀 下一步行动", "next_steps"),
+        (" 行业洞察", "industry_insight"),
+        (" 痛点诊断", "pain_diagnosis"),
+        (" 解决方案", "solution"),
+        (" 产品推荐", "product_recommendation"),
+        (" 费率优势", "fee_advantage"),
+        (" 合规保障", "compliance"),
+        (" 开户流程", "onboarding_flow"),
+        (" 下一步行动", "next_steps"),
     ]
 
     for title, key in sections:
@@ -133,7 +133,7 @@ def render_proposal_tab(proposal_data: dict):
             st.markdown(content)
 
     # 整体复制
-    with st.expander("📋 复制完整方案"):
+    with st.expander(" 复制完整方案"):
         full_text = "\n\n".join(
             f"【{title}】\n{proposal_data.get(key, '')}"
             for title, key in sections
@@ -156,7 +156,7 @@ def render_objection_tab(objection_data: dict):
                 st.markdown("** 直接回应**")
                 st.markdown(obj.get("direct_response", ""))
             with col2:
-                st.markdown("**🤝 共情回应**")
+                st.markdown("** 共情回应**")
                 st.markdown(obj.get("empathy_response", ""))
 
             st.markdown("** 数据回应**")
@@ -179,10 +179,10 @@ def render_battle_pack(battle_pack: dict, context: dict):
         context: 客户画像上下文
     """
     tab_speech, tab_cost, tab_proposal, tab_objection = st.tabs([
-        "🎤 话术",
-        "📊 成本",
-        "📋 方案",
-        "🛡️ 异议",
+        " 话术",
+        " 成本",
+        " 方案",
+        " 异议",
     ])
 
     with tab_speech:

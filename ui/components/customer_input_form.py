@@ -106,16 +106,16 @@ def render_customer_input_form() -> dict:
                 margin: 0.5rem 0 1rem 0;
             '>
                 <div style='display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;'>
-                    <span style='font-size:1rem;'>🎯</span>
+                    <span style='font-size:1rem;'></span>
                     <span style='font-size:0.9rem;color:{BRAND_COLORS["primary"]};font-weight:600;'>
                         智能判断战场：{bf_label}
                     </span>
                 </div>
                 <div style='font-size: 0.78rem; color: {BRAND_COLORS["text_secondary"]}; line-height: 1.5; padding-left: 1.6rem;'>
-                    <div>🎤 <b>话术聚焦</b>：{bf_speech}</div>
-                    <div>📊 <b>成本聚焦</b>：{bf_cost}</div>
-                    <div>📋 <b>方案聚焦</b>：{bf_proposal}</div>
-                    <div>🛡️ <b>异议聚焦</b>：{bf_objection}</div>
+                    <div> <b>话术聚焦</b>：{bf_speech}</div>
+                    <div> <b>成本聚焦</b>：{bf_cost}</div>
+                    <div> <b>方案聚焦</b>：{bf_proposal}</div>
+                    <div> <b>异议聚焦</b>：{bf_objection}</div>
                 </div>
             </div>
             """,
@@ -151,5 +151,5 @@ def render_customer_input_form_in_expander() -> dict:
     Returns:
         dict: 客户画像
     """
-    with st.expander("✏️ 修改客户信息", expanded=False):
+    with st.expander(" 修改客户信息", expanded=False):
         return render_customer_input_form()

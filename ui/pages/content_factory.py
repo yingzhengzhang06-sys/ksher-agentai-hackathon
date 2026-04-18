@@ -79,9 +79,9 @@ def _mock_generate_content(
                     f"【本周福利】免费成本对比分析\n\n"
                     f"想知道你的{industry_label}业务切换到 Ksher 能省多少钱？\n\n"
                     f"本周限10个名额，免费提供：\n"
-                    f"1️⃣ 当前渠道 vs Ksher 成本对比\n"
-                    f"2️⃣ 同行业客户案例参考\n"
-                    f"3️⃣ {country_label}市场收款最佳实践\n\n"
+                    f"1⃣ 当前渠道 vs Ksher 成本对比\n"
+                    f"2⃣ 同行业客户案例参考\n"
+                    f"3⃣ {country_label}市场收款最佳实践\n\n"
                     f"评论区扣\"1\"或私信我，先到先得。"
                 ),
                 "tips": "适合周末发布，配合限时福利促进互动",
@@ -396,7 +396,7 @@ def render_content_factory():
                             border-top: 1px solid #E8E8ED;
                             padding-top: 0.5rem;
                         '>
-                            💡 {item['tips']}
+                             {item['tips']}
                         </div>
                     </div>
                     """,
@@ -409,7 +409,7 @@ def render_content_factory():
                     st.code(item["content"], language="text")
 
         # 全部复制
-        with st.expander("📋 复制全部内容"):
+        with st.expander(" 复制全部内容"):
             all_text = "\n\n" + "=" * 40 + "\n\n".join(
                 f"【{c['title']}】\n{c['content']}" for c in contents
             )

@@ -168,7 +168,7 @@ def _mock_cost_pack(context: dict) -> dict:
     elif channel in ["PingPong", "万里汇", "XTransfer", "连连支付", "光子易", "空中云汇"]:
         label_key = "竞品综合"
     else:
-        label_key = "竞品综合"  # 默认用竞品文案
+        label_key = "竞品综合"# 默认用竞品文案
 
     return {
         "comparison_table": {
@@ -472,7 +472,7 @@ def render_battle_station():
                 font-size: 0.75rem;
                 margin-bottom: 0.5rem;
             '>
-                <span>⚡</span>
+                <span></span>
                 <span>当前为 Mock 模式（BattleRouter 未就绪，请检查 API Key 配置）</span>
             </div>
             """,
@@ -512,13 +512,13 @@ def render_battle_station():
     col_btn1, col_btn2, _ = st.columns([1, 1, 3])
     with col_btn1:
         generate_clicked = st.button(
-            "🚀 生成作战包",
+            " 生成作战包",
             use_container_width=True,
             type="primary",
         )
     with col_btn2:
         clear_clicked = st.button(
-            "🗑️ 清空",
+            " 清空",
             use_container_width=True,
         )
 

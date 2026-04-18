@@ -72,11 +72,11 @@ def _mock_poster_copy(industry: str, country: str, theme: str) -> dict:
             "subheadline": f"专为{industry_label}企业定制",
             "body": (
                 f"🎁 限时免费提供：\n"
-                f"1️⃣ 当前渠道 vs Ksher 成本对比\n"
-                f"2️⃣ 同行业客户案例参考\n"
-                f"3️⃣ {country_label}市场收款最佳实践\n\n"
+                f"1⃣ 当前渠道 vs Ksher 成本对比\n"
+                f"2⃣ 同行业客户案例参考\n"
+                f"3⃣ {country_label}市场收款最佳实践\n\n"
                 f"📅 活动时间：即日起至本月底\n"
-                f"💬 参与方式：评论区扣\"1\"或私信"
+                f" 参与方式：评论区扣\"1\"或私信"
             ),
             "cta": "立即预约",
             "color_scheme": "橙红渐变 + 白色文字",
@@ -213,7 +213,7 @@ def render_design_studio():
     st.markdown("---")
 
     # ---- 功能切换 ----
-    tab_poster, tab_ppt = st.tabs(["📢 营销海报", "📊 方案PPT"])
+    tab_poster, tab_ppt = st.tabs([" 营销海报", " 方案PPT"])
 
     with tab_poster:
         _render_poster_tab()
@@ -367,7 +367,7 @@ def _render_ppt_tab():
                 st.markdown(f"**备注**：{slide['notes']}")
 
         # 导出全部
-        with st.expander("📋 复制完整PPT大纲"):
+        with st.expander(" 复制完整PPT大纲"):
             full_text = f"# {ppt['title']}\n\n{ppt['subtitle']}\n\n"
             for slide in ppt["slides"]:
                 full_text += f"## 第{slide['slide_num']}页：{slide['title']}\n\n"

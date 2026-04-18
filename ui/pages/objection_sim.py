@@ -219,7 +219,7 @@ def _render_battlefield_mode(battlefield: str):
             font-weight: 600;
             margin-bottom: 1rem;
         '>
-            🎯 {bf_label}
+             {bf_label}
         </div>
         """,
         unsafe_allow_html=True,
@@ -236,7 +236,7 @@ def _render_battlefield_mode(battlefield: str):
             st.markdown("---")
 
             # 3种回应策略
-            tabs = st.tabs(["💬 直接回应", "🤝 共情回应", "📊 数据回应"])
+            tabs = st.tabs([" 直接回应", " 共情回应", " 数据回应"])
 
             with tabs[0]:
                 st.markdown(obj["direct_response"])
@@ -363,7 +363,7 @@ def _render_practice_mode():
                     f"主要节省来自：①无中间行扣费 ②更优汇率 ③更快到账减少资金占用。"
                 ),
                 "tips": (
-                    "💡 **训练要点**：\n"
+                    " **训练要点**：\n"
                     "1. 不要直接反驳客户的价格观点\n"
                     "2. 引导客户从\"表面费率\"转向\"综合成本\"\n"
                     "3. 用具体数字说话，增强说服力\n"
@@ -376,10 +376,10 @@ def _render_practice_mode():
         st.markdown("---")
         st.markdown(f"####  异议分析：{result['objection'][:50]}...")
 
-        st.markdown(f"**🔍 核心洞察**：{result['analysis']}")
+        st.markdown(f"** 核心洞察**：{result['analysis']}")
         st.markdown("---")
 
-        tabs = st.tabs(["💬 直接回应", "🤝 共情回应", "📊 数据回应", "💡 训练要点"])
+        tabs = st.tabs([" 直接回应", " 共情回应", " 数据回应", " 训练要点"])
         with tabs[0]:
             st.info(result["direct_response"])
         with tabs[1]:

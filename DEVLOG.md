@@ -407,6 +407,41 @@ Demo可在线访问 + UI美化 + 演示脚本熟练
 | 5.5 | 演示脚本排练 | 3分钟Demo逐字稿熟练，双战场场景各练3遍 |
 | 5.6 | 演示视频录制 | 备选方案：网络不可用时的录屏演示 |
 
+### 终端1 Day 5 后端验证记录（2026-04-18 11:50）
+
+**验证人**：终端1（架构师+后端）
+**验证范围**：终端2合并后的完整流水线
+
+#### P0 部署前最终检查
+
+| # | 检查项 | 结果 |
+|---|--------|------|
+| 1 | Git 提交完整性 | ✅ agents/8 + services/6 + orchestrator/1 + tests/7 + config.py |
+| 2 | requirements.txt | ✅ 8 个依赖齐全 |
+| 3 | 环境变量适配 | ✅ `_get_secret()` st.secrets + os.getenv 双模式 |
+| 4 | 路径兼容性 | ✅ 16 处 `os.path.join` |
+
+#### P1 部署环境验证
+
+| # | 检查项 | 结果 |
+|---|--------|------|
+| 5 | 集成测试 | ✅ 27/27 通过 |
+| 6 | Mock 模式 | ✅ CostCalculator ¥34,997 / ResultCache 隔离 / BattleRouter 3战场 |
+| 7 | 性能基准 | ✅ `data/performance_benchmark.json` 存在 |
+
+#### P2 真实 LLM 端到端测试
+
+| Agent | 耗时 | 状态 | 关键验证点 |
+|-------|------|------|-----------|
+| SpeechAgent（Kimi） | 75.8s | ✅ | 电梯话术/完整讲解/微信跟进 |
+| CostAgent（Claude） | 17.2s | ✅ | 对比表/年省¥34,997/summary |
+| ObjectionAgent（Kimi） | 52.0s | ✅ | 3个异议/战场策略 |
+| ProposalAgent（Claude） | 78.0s | ✅ | 8章节 463-541字 |
+
+**总计**: 4/4 通过
+
+**结论**：终端2 `config.RATES_CONFIG` 重构无回归。终端1后端全部就绪，等待终端2部署。
+
 ### 验收标准
 
 - [ ] Streamlit Cloud URL 可公开访问
@@ -597,6 +632,25 @@ Demo可在线访问 + UI美化 + 演示脚本熟练
 | 问题 | 位置 | 严重程度 | 处理 |
 |------|------|---------|------|
 | SpeechAgent wechat_followup 仅 3 字符 | `agents/speech_agent.py` JSON 模板值过短 | 中 | **已修复** — 模板值扩展为 200+ 字占位段落 + 新增 `_repair_json_quotes` + `_parse_text_response` 优先提取 markdown JSON |
+
+#### 新增功能：外部知识库动态引用
+
+**需求**：龙虾知识库路径 `/Users/macbookm4/.qclaw/workspace-agent-cdae0ad6/` 下的材料会持续更新，无需每次手动复制到项目 `knowledge/` 目录。
+
+**实现**：
+1. `config.py` 新增 `EXTERNAL_KNOWLEDGE_SOURCES` 配置，定义外部源路径列表
+2. `services/knowledge_loader.py` 新增 `_load_external_knowledge()` + `_match_external_file()`
+3. 智能匹配规则：根据文件名关键词（b2c/b2b/service/vietnam/pobo）+ Agent 类型 + 行业/国家上下文，选择性加载相关外部文件
+
+**效果**：
+| 场景 | 自动加载的外部文件 |
+|------|-------------------|
+| B2C + knowledge | `KSHER_B2C...`, `KSHER_KNOWLEDGE`, `KSHER_POBO` |
+| Service + knowledge | `KSHER_B2B_SERVICE...`, `KSHER_KNOWLEDGE`, `KSHER_POBO`, `KSHER_VIETNAM...` |
+| B2B + proposal | `KSHER_B2B_KNOWLEDGE`, `KSHER_KNOWLEDGE`, `KSHER_POBO` |
+| Cost agent | `KSHER_KNOWLEDGE`（通用知识，不含 POBO） |
+
+**特点**：外部文件更新后自动生效，无需重启或重新同步。
 
 ---
 

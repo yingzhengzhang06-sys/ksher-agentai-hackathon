@@ -1,0 +1,210 @@
+# Ksher AgentAI 智能工作台
+
+> **赛道**：赛道1 · 生产关系重构 & 效率提效
+> **Slogan**：一人公司，AI武装 — 一个人 + AI，打赢一个团队的仗
+> **截止日期**：2026年5月13日
+> **当前版本**：V1 Demo（Day 3 完成）
+
+---
+
+## 项目状态
+
+| 阶段 | 日期 | 状态 | 完成度 |
+|------|------|------|--------|
+| Day 0 准备期 | 2026-04-17 | ✅ 完成 | 100% |
+| Day 1 地基日 | 2026-04-17 | ✅ 完成 | 100% |
+| Day 2 核心引擎 | 2026-04-17 | ✅ 完成 | 100% |
+| Day 3 编排集成 | 2026-04-18 | 🔄 进行中 | 85% |
+| Day 4 独立工具 | 待定 | ⬜ 待开始 | 0% |
+| Day 5 联调部署 | 待定 | ⬜ 待开始 | 0% |
+| Day 6 路演准备 | 待定 | ⬜ 待开始 | 0% |
+
+**整体进度**：56% | **核心功能**：一键备战已跑通真实LLM
+
+---
+
+## 已完成的核心功能
+
+### ✅ 一键备战（核心演示功能）
+输入客户画像 → AI 自动生成完整作战包：
+- 🎤 **话术**：30秒电梯话术 + 3分钟完整讲解 + 微信跟进
+- 📊 **成本**：5项成本精确对比 + 年节省金额 + 可视化图表
+- 📋 **方案**：8章定制化提案（行业洞察→痛点诊断→解决方案→产品推荐→费率优势→合规保障→开户流程→下一步行动）
+- 🛡️ **异议**：Top 3 预判异议 + 3种回复策略（直接/共情/数据）
+
+**技术实现**：4个Agent半并行执行（Speech→Kimi / Cost→Claude / Objection→Kimi / Proposal→Claude）
+
+### ✅ 内容工厂
+- 4 个场景：朋友圈 / LinkedIn / 邮件 / 微信
+- 4 种语气：专业 / 亲和 / 数据驱动 / 故事型
+- 一键复制全部文案
+
+### ✅ 知识问答
+- 5 类问题预设：费率 / 泰国 / 竞品对比 / 开户流程 / 到账时效
+- 快捷问题标签 + 置信度标识 + 引用来源
+- 反馈机制（有帮助/需改进）
+
+---
+
+## 快速启动
+
+```bash
+# 1. 安装依赖
+pip install -r requirements.txt
+
+# 2. 配置环境变量
+cp .env.example .env
+# 编辑 .env 填入 API Key（Kimi + Cherry AI Claude）
+
+# 3. 启动应用
+streamlit run app.py
+
+# 4. 浏览器访问
+# http://localhost:8501
+```
+
+**模式自动切换**：BattleRouter 初始化成功 → 🤖 AI 真实模式 | 初始化失败 → ⚡ Mock 模式（自动降级，演示不中断）
+
+---
+
+## 项目结构
+
+```
+├── app.py                          # Streamlit主入口（品牌CSS/Session State/页面路由）
+├── config.py                       # 全局配置（API/Agent映射/品牌色/战场/行业）
+├── requirements.txt                # Python依赖
+├── .env                            # API Key（不提交Git）
+├── .env.example                    # 环境变量模板
+├── .gitignore
+├── README.md                       # 本文件
+├── DEVLOG.md                       # 每日开发日志
+├── docs/                           # 文档
+│   ├── INTERFACES.md               # 接口约定（Agent输出格式/UI组件/Session State）
+│   └── ...
+├── orchestrator/                   # 编排层
+│   └── battle_router.py            # 战场判断 + 半并行执行（并行/串行/流式三模式）
+├── agents/                         # 7个专业Agent（4个核心已实现）
+│   ├── base_agent.py               # Agent抽象基类（generate/stream/JSON解析/注册表）
+│   ├── speech_agent.py             # 话术Agent（Kimi）✅
+│   ├── cost_agent.py               # 成本Agent（Claude）✅
+│   ├── proposal_agent.py           # 方案Agent（Claude）✅
+│   ├── objection_agent.py          # 异议Agent（Kimi）✅
+│   ├── content_agent.py            # 内容Agent（待实现）
+│   ├── knowledge_agent.py          # 知识Agent（待实现）
+│   └── design_agent.py             # 设计Agent（待实现）
+├── prompts/                        # Prompt模板
+│   ├── system_prompts.py           # 各Agent System Prompt
+│   ├── speech_prompt.py            # 话术Agent Prompt（3战场适配）✅
+│   ├── cost_prompt.py              # 成本Agent Prompt（5项成本规则）✅
+│   └── knowledge_fusion_rules.py   # 三层知识融合规则 ✅
+├── knowledge/                      # 知识库（Markdown，16个文档）
+│   ├── index.json                  # 知识库索引（18文档/标签/Agent映射）
+│   ├── base/                       # 基础知识
+│   ├── b2c/                        # B2C各国
+│   ├── b2b/                        # B2B各国
+│   ├── service_trade/              # 服务贸易
+│   ├── products/                   # 特色产品
+│   ├── competitors/                # 竞品分析
+│   ├── operations/                 # 操作指引+FAQ
+│   ├── strategy/                   # 行业方案+优势策略
+│   └── fee_structure.json          # 费率参数
+├── services/                       # 服务层
+│   ├── llm_client.py               # 多模型统一客户端（Kimi+Claude，流式+同步）✅
+│   ├── knowledge_loader.py         # 知识库加载（按Agent选择性注入）✅
+│   ├── cost_calculator.py          # 成本计算引擎（纯Python，5项精确计算）✅
+│   ├── app_initializer.py          # App启动初始化（Router+Agent注册）✅
+│   ├── chart_generator.py          # 图表生成（待实现）
+│   └── ppt_generator.py            # PPT文件生成（待实现）
+├── ui/                             # UI组件
+│   ├── pages/                      # 各页面
+│   │   ├── battle_station.py       # 一键备战（Mock+真实双模式）✅
+│   │   ├── content_factory.py      # 内容工厂 ✅
+│   │   ├── knowledge_qa.py         # 知识问答 ✅
+│   │   ├── objection_sim.py        # 异议模拟（占位符）
+│   │   └── design_studio.py        # 海报/PPT（占位符）
+│   ├── components/                 # 可复用组件
+│   │   ├── sidebar.py              # 侧边栏导航 ✅
+│   │   ├── customer_input_form.py  # 客户信息输入表单 ✅
+│   │   └── battle_pack_display.py  # 作战包4Tab展示 ✅
+│   └── styles/                     # 自定义样式
+├── data/                           # 数据（反馈闭环）
+│   ├── feedback.json               # 拜访结果反馈
+│   └── mock_dashboard.json         # 仪表盘模拟数据
+├── assets/                         # 静态资源
+│   ├── logo.png                    # Ksher Logo
+│   └── brand_colors.json           # 品牌色值
+└── tests/                          # 测试
+    └── test_integration.py         # 集成测试
+```
+
+---
+
+## 技术栈
+
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 前端 | Streamlit | 6页面SPA，品牌CSS注入 |
+| AI模型 | Kimi K2.5 | 创意型Agent（话术/内容/异议/设计） |
+| AI模型 | Claude Sonnet 4.6 | 精准型Agent（成本/方案/知识），通过 Cherry AI |
+| 编排 | ThreadPoolExecutor | 两阶段半并行（Phase1并行/Phase2串行） |
+| 知识库 | 本地Markdown | Prompt注入（<100K tokens），V2升级RAG |
+| 图表 | Plotly | 成本对比可视化 |
+| PPT生成 | python-pptx | 方案PPT导出（待实现） |
+
+---
+
+## Agent → 模型映射
+
+| Agent | 模型 | 任务类型 | 状态 |
+|-------|------|---------|------|
+| SpeechAgent | Kimi K2.5 | 话术生成 | ✅ |
+| CostAgent | Sonnet 4.6 | 成本计算 | ✅ |
+| ProposalAgent | Sonnet 4.6 | 方案生成 | ✅ |
+| ObjectionAgent | Kimi K2.5 | 异议处理 | ✅ |
+| ContentAgent | Kimi K2.5 | 内容营销 | 🔄 Mock实现 |
+| KnowledgeAgent | Sonnet 4.6 | 知识问答 | 🔄 Mock实现 |
+| DesignAgent | Kimi K2.5 | 海报/PPT | ⬜ 待实现 |
+
+---
+
+## 环境准备清单
+
+- [x] Python 3.10+（当前 3.14.3）
+- [x] pip 依赖安装
+- [x] Anthropic API Key（Cherry AI）
+- [x] Kimi API Key（Moonshot AI）
+- [x] Ksher 品牌素材（Logo/色值 #E83E4C）
+- [x] 费率数据确认（B2C/B2B 各国家）
+
+**API Key 获取地址**：
+- Kimi：https://platform.moonshot.cn/console/api-keys
+- Cherry AI（Claude）：https://open.cherryin.ai/console
+
+---
+
+## 开发日志
+
+详见 [DEVLOG.md](./DEVLOG.md)
+
+### 最近更新（Day 3）
+- 一键备战端到端跑通：107秒完成4个Agent真实LLM调用
+- 内容工厂页面实现（4场景内容生成）
+- 知识问答页面实现（5类问题预设回答）
+- API Key更新并完成验证
+
+---
+
+## 已知问题
+
+| # | 问题 | 严重度 | 处理方案 |
+|---|------|--------|---------|
+| 1 | wechat_followup 字段解析偶有异常 | 🟡 Low | JSON解析回退机制已覆盖，不影响演示 |
+| 2 | ProposalAgent 字段长度偏短 | 🟡 Low | Prompt优化，不影响核心功能 |
+| 3 | 生成耗时107秒（4Agent串行） | 🟡 Low | 半并行已优化，实际体验可接受 |
+| 4 | 3个独立工具页面仍占位符 | 🟡 Low | Day 4 实现 |
+
+---
+
+## 许可证
+
+内部项目，版权归 Ksher 所有。

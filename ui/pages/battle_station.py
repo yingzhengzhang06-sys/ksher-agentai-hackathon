@@ -18,6 +18,11 @@ import streamlit as st
 from config import BRAND_COLORS, BATTLEFIELD_TYPES, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
 from ui.components.customer_input_form import render_customer_input_form
 from ui.components.battle_pack_display import render_battle_pack
+from ui.components.error_handlers import (
+    render_error,
+    render_mock_fallback_notice,
+    render_empty_state,
+)
 
 
 # ============================================================
@@ -411,7 +416,7 @@ def render_battle_station():
 
     if generate_clicked:
         if not context.get("company"):
-            st.error("⚠️ 请输入客户公司名")
+            render_error("请输入客户公司名", "客户公司名是生成作战包的必填项。")
             return
 
         with st.spinner("🤖 AI 正在生成作战包，请稍候..."):
@@ -424,8 +429,9 @@ def render_battle_station():
                     battle_pack = _generate_real_battle_pack(context)
                 except Exception as e:
                     # Agent 调用失败时降级到 Mock，保证 Demo 不中断
-                    st.warning(
-                        f"⚠️ 真实模式调用失败：{e}\n\n自动回退到 Mock 模式，确保演示可继续。"
+                    render_mock_fallback_notice(
+                        f"真实模式调用失败，已自动回退到 Mock 模式",
+                        f"错误：{str(e)[:200]}"
                     )
                     battle_pack = _generate_mock_battle_pack(context)
             st.session_state.battle_pack = battle_pack

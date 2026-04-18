@@ -1,0 +1,419 @@
+{
+  "version": "1.2",
+  "last_updated": "2026-04-18",
+  "description": "Ksher AgentAI 知识库索引。供 Orchestrator 按 Agent 类型和查询意图检索相关文档片段。",
+  "documents": [
+    {
+      "id": "fee_structure_json",
+      "file": "fee_structure.json",
+      "format": "json",
+      "title": "Ksher 费率结构数据（机器可读）",
+      "summary": "标准定价、客户分级、各国家费率、竞品对比、结算周期等结构化数据",
+      "tags": ["费率", "定价", "竞品对比", "客户分级", "B2C", "B2B", "买家付款"],
+      "agents": ["cost", "proposal", "speech", "knowledge", "objection"],
+      "priority": 10
+    },
+    {
+      "id": "fee_structure_md",
+      "file": "fee_structure.md",
+      "format": "markdown",
+      "title": "Ksher 定价政策手册 V2.0",
+      "summary": "完整定价政策文档，包含标准定价、分层定价、供应商付款、本地分发、汇率分层、价格审批流程、Review 机制等",
+      "tags": ["费率", "定价", "审批流程", "汇率", "客户分级", "Review机制", "政策"],
+      "agents": ["knowledge", "proposal", "speech", "objection"],
+      "priority": 10
+    },
+    {
+      "id": "base_company",
+      "file": "base/company_profile.md",
+      "format": "markdown",
+      "title": "Ksher 公司介绍",
+      "summary": "公司概况、牌照资质、核心能力、服务客户群体",
+      "tags": ["公司", "牌照", "资质", "Ksher", "简介"],
+      "agents": ["knowledge", "proposal", "speech", "content", "design"],
+      "priority": 9
+    },
+    {
+      "id": "base_basics",
+      "file": "base/cross_border_basics.md",
+      "format": "markdown",
+      "title": "跨境支付基础知识",
+      "summary": "跨境支付概念、常见渠道对比、隐性成本、东南亚电商市场概况",
+      "tags": ["基础知识", "跨境支付", "渠道对比", "隐性成本", "东南亚"],
+      "agents": ["knowledge", "speech", "content"],
+      "priority": 8
+    },
+    {
+      "id": "b2c_overview",
+      "file": "b2c/b2c_overview.md",
+      "format": "markdown",
+      "title": "B2C 跨境电商收款产品概览",
+      "summary": "B2C产品定义、覆盖5国、核心流程、分层定价",
+      "tags": ["B2C", "跨境电商", "Shopee", "Lazada", "TikTokShop", "收款"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2c_thailand",
+      "file": "b2c/b2c_thailand.md",
+      "format": "markdown",
+      "title": "B2C 泰国产品卡片",
+      "summary": "泰国电商市场、Ksher泰国产品能力、竞品对比、销售话术",
+      "tags": ["B2C", "泰国", "THB", "Shopee", "SCB", "秒到宝"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2c_malaysia",
+      "file": "b2c/b2c_malaysia.md",
+      "format": "markdown",
+      "title": "B2C 马来西亚产品卡片",
+      "summary": "马来西亚电商市场、Ksher马来产品能力、竞品对比、销售话术",
+      "tags": ["B2C", "马来西亚", "MYR", "Shopee", "Lazada"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2c_philippines",
+      "file": "b2c/b2c_philippines.md",
+      "format": "markdown",
+      "title": "B2C 菲律宾产品卡片",
+      "summary": "菲律宾电商市场、GCash支付、Ksher菲律宾产品能力、竞品对比",
+      "tags": ["B2C", "菲律宾", "PHP", "GCash", "Shopee"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2c_indonesia",
+      "file": "b2c/b2c_indonesia.md",
+      "format": "markdown",
+      "title": "B2C 印尼产品卡片",
+      "summary": "印尼电商市场、电子钱包生态、Ksher印尼产品能力、竞品对比",
+      "tags": ["B2C", "印尼", "IDR", "GoPay", "OVO", "Tokopedia"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2c_vietnam",
+      "file": "b2c/b2c_vietnam.md",
+      "format": "markdown",
+      "title": "B2C 越南产品卡片",
+      "summary": "越南电商市场、MoMo/ZaloPay支付、Ksher越南产品能力、竞品对比",
+      "tags": ["B2C", "越南", "VND", "MoMo", "Tiki"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_overview",
+      "file": "b2b/b2b_overview.md",
+      "format": "markdown",
+      "title": "B2B 跨境货贸收款产品概览",
+      "summary": "B2B产品定义、覆盖7国/地区、与B2C区别、分层定价",
+      "tags": ["B2B", "跨境货贸", "外贸", "一般贸易", "收款"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_hongkong",
+      "file": "b2b/b2b_hongkong.md",
+      "format": "markdown",
+      "title": "B2B 香港全球收产品卡片",
+      "summary": "香港全球收产品定义、核心优势、适用场景、竞品对比",
+      "tags": ["B2B", "香港", "HKD", "全球收", "多币种", "POBO"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_thailand",
+      "file": "b2b/b2b_thailand.md",
+      "format": "markdown",
+      "title": "B2B 泰国产品卡片",
+      "summary": "泰国B2B贸易市场、Ksher泰国B2B产品能力、竞品对比、销售话术",
+      "tags": ["B2B", "泰国", "THB", "机械设备", "外贸"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_malaysia",
+      "file": "b2b/b2b_malaysia.md",
+      "format": "markdown",
+      "title": "B2B 马来西亚产品卡片",
+      "summary": "马来西亚B2B贸易市场、Ksher马来B2B产品能力、竞品对比、销售话术",
+      "tags": ["B2B", "马来西亚", "MYR", "电子元器件", "外贸"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_philippines",
+      "file": "b2b/b2b_philippines.md",
+      "format": "markdown",
+      "title": "B2B 菲律宾产品卡片",
+      "summary": "菲律宾B2B贸易市场、Ksher菲律宾B2B产品能力、竞品对比、销售话术",
+      "tags": ["B2B", "菲律宾", "PHP", "化工产品", "外贸"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_indonesia",
+      "file": "b2b/b2b_indonesia.md",
+      "format": "markdown",
+      "title": "B2B 印尼产品卡片",
+      "summary": "印尼B2B贸易市场、BI持牌优势、Ksher印尼B2B产品能力、竞品对比",
+      "tags": ["B2B", "印尼", "IDR", "纺织品", "BI牌照"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_vietnam",
+      "file": "b2b/b2b_vietnam.md",
+      "format": "markdown",
+      "title": "B2B 越南产品卡片",
+      "summary": "越南B2B贸易市场、汇率波动特点、Ksher越南B2B产品能力、竞品对比",
+      "tags": ["B2B", "越南", "VND", "机械设备", "外贸"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "b2b_europe",
+      "file": "b2b/b2b_europe.md",
+      "format": "markdown",
+      "title": "B2B 欧洲产品卡片",
+      "summary": "欧洲B2B贸易市场、SEPA支付、香港全球收EUR方案、竞品对比",
+      "tags": ["B2B", "欧洲", "EUR", "SEPA", "多市场"],
+      "agents": ["knowledge", "proposal", "speech", "cost", "objection"],
+      "priority": 9
+    },
+    {
+      "id": "service_overview",
+      "file": "service_trade/service_trade_overview.md",
+      "format": "markdown",
+      "title": "服务贸易收款产品概览",
+      "summary": "服务贸易产品定义、支持场景、所需材料、风控要点",
+      "tags": ["服务贸易", "SaaS", "游戏", "教育", "物流", "咨询"],
+      "agents": ["knowledge", "proposal", "speech"],
+      "priority": 8
+    },
+    {
+      "id": "service_logistics",
+      "file": "service_trade/logistics.md",
+      "format": "markdown",
+      "title": "物流场景收款专项指南",
+      "summary": "物流收款痛点、Ksher解决方案、所需材料、案例话术",
+      "tags": ["服务贸易", "物流", "货代", "运费", "API"],
+      "agents": ["knowledge", "proposal", "speech"],
+      "priority": 8
+    },
+    {
+      "id": "product_instant",
+      "file": "products/instant_settlement.md",
+      "format": "markdown",
+      "title": "秒到宝 T+0 快速到账",
+      "summary": "秒到宝产品定义、核心卖点、资金时间成本计算、销售话术",
+      "tags": ["秒到宝", "T+0", "快速到账", "资金周转", "增值服务"],
+      "agents": ["knowledge", "proposal", "speech", "cost"],
+      "priority": 8
+    },
+    {
+      "id": "product_supplier",
+      "file": "products/supplier_payment.md",
+      "format": "markdown",
+      "title": "供应商付款与 POBO",
+      "summary": "供应商付款产品定义、付款方式、POBO详解、竞品对比",
+      "tags": ["供应商付款", "POBO", "代付", "全球付款", "HKD", "USD"],
+      "agents": ["knowledge", "proposal", "speech"],
+      "priority": 8
+    },
+    {
+      "id": "comp_pingpong",
+      "file": "competitors/pingpong.md",
+      "format": "markdown",
+      "title": "PingPong 竞品分析",
+      "summary": "PingPong公司概况、费率参数、优势与劣势、Ksher差异化话术",
+      "tags": ["竞品", "PingPong", "对比", "差异化"],
+      "agents": ["knowledge", "speech", "objection", "cost", "proposal"],
+      "priority": 8
+    },
+    {
+      "id": "comp_bank",
+      "file": "competitors/bank_wire.md",
+      "format": "markdown",
+      "title": "银行电汇竞品分析",
+      "summary": "银行电汇费率参数、隐性成本计算、客户难切换原因、切入策略",
+      "tags": ["竞品", "银行", "电汇", "TT", "隐性成本"],
+      "agents": ["knowledge", "speech", "objection", "cost", "proposal"],
+      "priority": 9
+    },
+    {
+      "id": "comp_worldfirst",
+      "file": "competitors/worldfirst.md",
+      "format": "markdown",
+      "title": "万里汇（WorldFirst）竞品分析",
+      "summary": "万里汇公司概况、费率参数、阿里生态优势、东南亚劣势、Ksher差异化话术",
+      "tags": ["竞品", "万里汇", "WorldFirst", "阿里", "对比"],
+      "agents": ["knowledge", "speech", "objection", "cost", "proposal"],
+      "priority": 8
+    },
+    {
+      "id": "comp_xtransfer",
+      "file": "competitors/xtransfer.md",
+      "format": "markdown",
+      "title": "XTransfer 竞品分析",
+      "summary": "XTransfer公司概况、费率参数、B2B专注优势、东南亚劣势、Ksher差异化话术",
+      "tags": ["竞品", "XTransfer", "B2B", "对比"],
+      "agents": ["knowledge", "speech", "objection", "cost", "proposal"],
+      "priority": 8
+    },
+    {
+      "id": "ops_onboarding",
+      "file": "operations/onboarding_process.md",
+      "format": "markdown",
+      "title": "开户流程指南",
+      "summary": "开户所需材料、流程步骤、各国家账户开通、常见问题",
+      "tags": ["开户", "流程", "材料", "审核", "KYC"],
+      "agents": ["knowledge", "speech", "proposal"],
+      "priority": 8
+    },
+    {
+      "id": "ops_faq",
+      "file": "operations/faq.md",
+      "format": "markdown",
+      "title": "常见问题 FAQ",
+      "summary": "费率、到账、合规、产品等常见问题及回答",
+      "tags": ["FAQ", "常见问题", "费率", "到账", "合规", "安全"],
+      "agents": ["knowledge", "speech"],
+      "priority": 8
+    },
+    {
+      "id": "strategy_battlefield",
+      "file": "strategy/battlefield_strategy.md",
+      "format": "markdown",
+      "title": "战场类型与销售策略",
+      "summary": "三种战场类型定义、客户特征、核心策略、切入点、常见异议",
+      "tags": ["销售策略", "战场", "增量", "存量", "教育"],
+      "agents": ["speech", "objection", "proposal", "content"],
+      "priority": 7
+    },
+    {
+      "id": "strategy_objection",
+      "file": "strategy/objection_handling_guide.md",
+      "format": "markdown",
+      "title": "异议处理指南",
+      "summary": "通用异议处理原则、各战场常见异议及三种回复策略（直接型/共情型/引导型）",
+      "tags": ["异议处理", "销售技巧", "话术", "回复策略"],
+      "agents": ["objection", "speech"],
+      "priority": 8
+    },
+    {
+      "id": "demo_scenario_a",
+      "file": "demo_scenarios/scenario_a_bank.md",
+      "format": "markdown",
+      "title": "演示场景A：银行客户（增量战场）",
+      "summary": "深圳外贸工厂案例、5项成本计算、隐性成本话术、常见异议应对",
+      "tags": ["Demo", "增量战场", "银行", "演示", "话术"],
+      "agents": ["speech", "cost", "proposal", "objection"],
+      "priority": 6
+    },
+    {
+      "id": "demo_scenario_b",
+      "file": "demo_scenarios/scenario_b_competitor.md",
+      "format": "markdown",
+      "title": "演示场景B：竞品客户（存量战场）",
+      "summary": "义乌Shopee卖家案例、Ksher vs PingPong对比、差异化话术、并行使用策略",
+      "tags": ["Demo", "存量战场", "PingPong", "演示", "话术"],
+      "agents": ["speech", "cost", "proposal", "objection"],
+      "priority": 6
+    },
+    {
+      "id": "demo_qa",
+      "file": "demo_scenarios/qa_faq.md",
+      "format": "markdown",
+      "title": "评审团 Q&A 问题库",
+      "summary": "13个评审常见问题及回答（产品技术/商业模式/技术实现/市场定位）",
+      "tags": ["Demo", "Q&A", "评审", "路演", "FAQ"],
+      "agents": ["knowledge", "speech"],
+      "priority": 6
+    }
+  ],
+  "tag_index": {
+    "费率": ["fee_structure_json", "fee_structure_md"],
+    "定价": ["fee_structure_json", "fee_structure_md"],
+    "竞品对比": ["fee_structure_json", "comp_pingpong", "comp_bank", "comp_worldfirst", "comp_xtransfer"],
+    "客户分级": ["fee_structure_json", "fee_structure_md"],
+    "审批流程": ["fee_structure_md"],
+    "汇率": ["fee_structure_md"],
+    "B2C": ["fee_structure_json", "b2c_overview", "b2c_thailand", "b2c_malaysia", "b2c_philippines", "b2c_indonesia", "b2c_vietnam"],
+    "B2B": ["fee_structure_json", "b2b_overview", "b2b_hongkong", "b2b_thailand", "b2b_malaysia", "b2b_philippines", "b2b_indonesia", "b2b_vietnam", "b2b_europe"],
+    "买家付款": ["fee_structure_json"],
+    "政策": ["fee_structure_md"],
+    "公司": ["base_company"],
+    "牌照": ["base_company"],
+    "基础知识": ["base_basics"],
+    "泰国": ["b2c_thailand", "b2b_thailand"],
+    "马来西亚": ["b2c_malaysia", "b2b_malaysia"],
+    "菲律宾": ["b2c_philippines", "b2b_philippines"],
+    "印尼": ["b2c_indonesia", "b2b_indonesia"],
+    "越南": ["b2c_vietnam", "b2b_vietnam"],
+    "欧洲": ["b2b_europe"],
+    "香港": ["b2b_hongkong"],
+    "服务贸易": ["service_overview", "service_logistics"],
+    "物流": ["service_logistics"],
+    "秒到宝": ["product_instant"],
+    "供应商付款": ["product_supplier"],
+    "POBO": ["product_supplier"],
+    "PingPong": ["comp_pingpong"],
+    "万里汇": ["comp_worldfirst"],
+    "WorldFirst": ["comp_worldfirst"],
+    "XTransfer": ["comp_xtransfer"],
+    "银行": ["comp_bank"],
+    "开户": ["ops_onboarding"],
+    "FAQ": ["ops_faq"],
+    "销售策略": ["strategy_battlefield", "strategy_objection"],
+    "异议处理": ["strategy_objection"],
+    "Demo": ["demo_scenario_a", "demo_scenario_b", "demo_qa"],
+    "演示": ["demo_scenario_a", "demo_scenario_b", "demo_qa"],
+    "评审": ["demo_qa"],
+    "路演": ["demo_qa"]
+  },
+  "agent_doc_map": {
+    "cost": {
+      "description": "成本分析 Agent，需要精确费率数据和竞品对比",
+      "doc_ids": ["fee_structure_json", "comp_pingpong", "comp_bank", "comp_worldfirst", "comp_xtransfer"],
+      "injection_mode": "full"
+    },
+    "proposal": {
+      "description": "方案生成 Agent，需要产品+费率+政策+竞品信息",
+      "doc_ids": ["fee_structure_json", "fee_structure_md", "base_company", "b2c_overview", "b2c_thailand", "b2c_malaysia", "b2c_philippines", "b2c_indonesia", "b2c_vietnam", "b2b_overview", "b2b_hongkong", "b2b_thailand", "b2b_malaysia", "b2b_philippines", "b2b_indonesia", "b2b_vietnam", "b2b_europe", "comp_pingpong", "comp_bank", "comp_worldfirst", "comp_xtransfer", "ops_onboarding"],
+      "injection_mode": "selective"
+    },
+    "speech": {
+      "description": "话术生成 Agent，需要产品优势、费率数据、销售策略",
+      "doc_ids": ["fee_structure_json", "fee_structure_md", "base_company", "b2c_overview", "b2c_thailand", "b2c_malaysia", "b2c_philippines", "b2c_indonesia", "b2c_vietnam", "b2b_overview", "b2b_thailand", "b2b_malaysia", "b2b_philippines", "b2b_indonesia", "b2b_vietnam", "comp_pingpong", "comp_bank", "comp_worldfirst", "comp_xtransfer", "strategy_battlefield", "strategy_objection"],
+      "injection_mode": "selective"
+    },
+    "objection": {
+      "description": "异议处理 Agent，需要竞品对比、策略、话术模板",
+      "doc_ids": ["comp_pingpong", "comp_bank", "comp_worldfirst", "comp_xtransfer", "strategy_objection", "strategy_battlefield", "fee_structure_json"],
+      "injection_mode": "selective"
+    },
+    "knowledge": {
+      "description": "知识问答 Agent，需要全量知识库",
+      "doc_ids": ["fee_structure_json", "fee_structure_md", "base_company", "base_basics", "b2c_overview", "b2c_thailand", "b2c_malaysia", "b2c_philippines", "b2c_indonesia", "b2c_vietnam", "b2b_overview", "b2b_hongkong", "b2b_thailand", "b2b_malaysia", "b2b_philippines", "b2b_indonesia", "b2b_vietnam", "b2b_europe", "service_overview", "service_logistics", "product_instant", "product_supplier", "comp_pingpong", "comp_bank", "comp_worldfirst", "comp_xtransfer", "ops_onboarding", "ops_faq", "strategy_battlefield", "strategy_objection"],
+      "injection_mode": "rag"
+    },
+    "content": {
+      "description": "内容营销 Agent，需要产品卖点、品牌信息、市场数据",
+      "doc_ids": ["base_company", "base_basics", "b2c_overview", "b2b_overview", "strategy_battlefield"],
+      "injection_mode": "selective"
+    },
+    "design": {
+      "description": "设计顾问 Agent，需要品牌规范和产品卖点",
+      "doc_ids": ["base_company", "b2c_overview", "b2b_overview"],
+      "injection_mode": "selective"
+    }
+  },
+  "injection_modes": {
+    "full": "将整个文档内容注入 Prompt",
+    "selective": "按查询意图选择相关片段注入",
+    "rag": "向量检索 Top-K 相关片段注入（V2 升级）"
+  }
+}

@@ -11,6 +11,7 @@
 import streamlit as st
 
 from config import BRAND_COLORS, BATTLEFIELD_TYPES
+from ui.components.error_handlers import render_error
 
 
 # ============================================================
@@ -336,7 +337,7 @@ def _render_practice_mode():
 
     if st.button("🤖 AI 分析异议", type="primary", key="obj_analyze_btn"):
         if not user_objection:
-            st.error("⚠️ 请输入客户异议内容")
+            render_error("请输入客户异议内容", "客户异议内容是生成回复策略的必填项。")
             return
 
         with st.spinner("AI 正在分析异议并生成应对策略..."):

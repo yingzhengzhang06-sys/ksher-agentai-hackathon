@@ -11,6 +11,7 @@
 import streamlit as st
 
 from config import BRAND_COLORS, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
+from ui.components.error_handlers import render_error, render_empty_state
 
 
 # ============================================================
@@ -347,7 +348,7 @@ def _render_ppt_tab():
 
     if st.button("✨ 生成PPT大纲", type="primary", key="ds_gen_ppt"):
         if not company:
-            st.error("⚠️ 请输入客户公司名")
+            render_error("请输入客户公司名", "客户公司名是生成PPT的必填项。")
             return
 
         with st.spinner("AI 正在生成PPT大纲..."):

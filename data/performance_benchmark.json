@@ -1,0 +1,406 @@
+{
+  "updated_at": "2026-04-18T10:23:32.985594",
+  "total_records": 50,
+  "records": [
+    {
+      "timestamp": "2026-04-18T10:23:32.984468",
+      "agent": "cost",
+      "latency_ms": 17057,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984486",
+      "agent": "knowledge",
+      "latency_ms": 61553,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984491",
+      "agent": "objection",
+      "latency_ms": 65475,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984494",
+      "agent": "objection",
+      "latency_ms": 68792,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984496",
+      "agent": "knowledge",
+      "latency_ms": 67660,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984499",
+      "agent": "speech",
+      "latency_ms": 18396,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984501",
+      "agent": "cost",
+      "latency_ms": 39317,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984503",
+      "agent": "content",
+      "latency_ms": 13107,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984505",
+      "agent": "design",
+      "latency_ms": 69036,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984508",
+      "agent": "cost",
+      "latency_ms": 55306,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984510",
+      "agent": "knowledge",
+      "latency_ms": 32851,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984512",
+      "agent": "speech",
+      "latency_ms": 31475,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984514",
+      "agent": "content",
+      "latency_ms": 6390,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984516",
+      "agent": "content",
+      "latency_ms": 57750,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984518",
+      "agent": "content",
+      "latency_ms": 30165,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984520",
+      "agent": "content",
+      "latency_ms": 3473,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984522",
+      "agent": "content",
+      "latency_ms": 11067,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984524",
+      "agent": "content",
+      "latency_ms": 55217,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984526",
+      "agent": "cost",
+      "latency_ms": 61870,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984528",
+      "agent": "knowledge",
+      "latency_ms": 75402,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984992",
+      "agent": "content",
+      "latency_ms": 48497,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984996",
+      "agent": "design",
+      "latency_ms": 18374,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.984998",
+      "agent": "objection",
+      "latency_ms": 1151,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985000",
+      "agent": "content",
+      "latency_ms": 15741,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985003",
+      "agent": "cost",
+      "latency_ms": 13500,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985005",
+      "agent": "objection",
+      "latency_ms": 30161,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985007",
+      "agent": "proposal",
+      "latency_ms": 18203,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985009",
+      "agent": "knowledge",
+      "latency_ms": 12530,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985011",
+      "agent": "cost",
+      "latency_ms": 42513,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985013",
+      "agent": "proposal",
+      "latency_ms": 37620,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985015",
+      "agent": "content",
+      "latency_ms": 41623,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985018",
+      "agent": "content",
+      "latency_ms": 18651,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985020",
+      "agent": "cost",
+      "latency_ms": 68276,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985022",
+      "agent": "speech",
+      "latency_ms": 74787,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985024",
+      "agent": "content",
+      "latency_ms": 41619,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985026",
+      "agent": "knowledge",
+      "latency_ms": 36558,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985028",
+      "agent": "cost",
+      "latency_ms": 19527,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985030",
+      "agent": "content",
+      "latency_ms": 15821,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985032",
+      "agent": "proposal",
+      "latency_ms": 68386,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985034",
+      "agent": "cost",
+      "latency_ms": 65446,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985515",
+      "agent": "content",
+      "latency_ms": 72775,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985519",
+      "agent": "objection",
+      "latency_ms": 77412,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985521",
+      "agent": "cost",
+      "latency_ms": 79536,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985523",
+      "agent": "content",
+      "latency_ms": 15719,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985525",
+      "agent": "cost",
+      "latency_ms": 47944,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985527",
+      "agent": "objection",
+      "latency_ms": 43610,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985530",
+      "agent": "knowledge",
+      "latency_ms": 78747,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985532",
+      "agent": "design",
+      "latency_ms": 50857,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985533",
+      "agent": "proposal",
+      "latency_ms": 38966,
+      "cached": true,
+      "success": true,
+      "context_size": 0
+    },
+    {
+      "timestamp": "2026-04-18T10:23:32.985536",
+      "agent": "design",
+      "latency_ms": 36136,
+      "cached": false,
+      "success": true,
+      "context_size": 0
+    }
+  ]
+}

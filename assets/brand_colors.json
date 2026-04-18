@@ -1,0 +1,16 @@
+{
+  "primary": "#E83E4C",
+  "primary_dark": "#C52D3A",
+  "primary_light": "#FF6B76",
+  "secondary": "#1A1A2E",
+  "accent": "#00C9A7",
+  "background": "#0F0F1A",
+  "surface": "#1E1E2F",
+  "text_primary": "#FFFFFF",
+  "text_secondary": "#B0B0C0",
+  "text_muted": "#6B6B7B",
+  "success": "#00C9A7",
+  "warning": "#FFB800",
+  "danger": "#E83E4C",
+  "info": "#3B82F6"
+}

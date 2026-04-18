@@ -119,14 +119,14 @@ class ProposalAgent(BaseAgent):
             f"",
             f"```json",
             f"{{",
-            f'  "industry_insight": "基于 {INDUSTRY_OPTIONS.get(industry, industry)} 的行业趋势和挑战",',
-            f'  "pain_diagnosis": "针对客户使用 {current_channel} 的具体痛点诊断",',
-            f'  "solution": "Ksher 如何解决每个痛点",',
-            f'  "product_recommendation": "根据 {COUNTRY_OPTIONS.get(target_country, target_country)} 推荐最适合的产品组合",',
-            f'  "fee_advantage": "引用成本数据：切换到 Ksher，年省 ¥{annual_saving:,.0f}",',
-            f'  "compliance": "Ksher 在 {COUNTRY_OPTIONS.get(target_country, target_country)} 的合规保障",',
-            f'  "onboarding_flow": "从签约到收款的完整流程",',
-            f'  "next_steps": "明确的下一步行动 CTA"',
+            f'  "industry_insight": "此处应写一段至少 200 字的行业洞察分析。包括：(1) 行业规模与增长趋势——引用权威数据说明市场有多大、增速如何；(2) 竞争格局变化——主要市场参与者、消费者行为变化、政策环境影响；(3) 跨境收款的核心挑战——为什么传统方案已无法满足该行业的发展需求；以及对客户意味着什么——这些趋势如何影响客户的利润空间和竞争力。不要只列数字，要有逻辑递进和深度洞察。",',
+            f'  "pain_diagnosis": "此处应写一段至少 200 字的痛点诊断。不要只说手续费高，要具体到三个层次：第一，显性成本具体是多少——当前渠道的费率结构如何构成，每月固定费用和比例费用分别是多少；第二，隐性成本有哪些——汇率损失、资金占用时间、多平台管理的人工成本；第三，业务影响是什么——这些成本如何拖累客户的备货能力、定价竞争力和资金周转效率。每个痛点都要有数据和逻辑链条。",',
+            f'  "solution": "此处应写一段至少 200 字的解决方案描述。不是简单地列出产品功能，而是针对上述每个痛点给出完整的解决方案逻辑：针对手续费高的痛点——Ksher 的费率结构和节省方式是什么，具体能降低多少百分比；针对汇率损失的痛点——Ksher 采用的汇率机制和与国际市价的对比优势；针对到账慢的问题——T+1 到账如何释放资金占用成本、提高资金周转率；针对多平台管理问题——一站式收款如何降低人力成本。每个解决方案都要有量化价值和业务逻辑支撑。",',
+            f'  "product_recommendation": "此处应写一段至少 200 字的产品推荐。基于客户的目标国家和业务类型，推荐最适合的 Ksher 产品组合。包括：(1) 主推产品——为什么这个产品最匹配客户的业务场景，具体有哪些功能；(2) 辅助产品——还可以搭配哪些增值服务，如多币种账户、自动结算、API 对接等；(3) 与竞品对比——为什么 Ksher 的产品在该市场上具有差异化优势；(4) 客户收益预期——使用这些产品后预计能达到什么效果。",',
+            f'  "fee_advantage": "此处应写一段至少 200 字的费率优势分析。引用 CostAgent 提供的具体成本数据：年度总成本对比、各项成本的明细拆解（手续费、汇率损失、资金时间成本、多平台管理成本、合规风险成本），以及切换到 Ksher 后的节省金额和节省比例。不要只罗列表格数字，要解释这些节省对客户业务的实际意义——省下的钱可以用来做什么，如何转为客户的核心竞争力。",',
+            f'  "compliance": "此处应写一段至少 200 字的合规保障说明。详细介绍 Ksher 在目标国家的合规资质：持有哪些监管机构颁发的牌照、牌照类型和覆盖范围、监管框架下的资金安全保障机制、合规审计和风控体系。同时说明合规对客户的价值：降低交易冻结风险、满足跨境收付的法规要求、避免无资质服务商的潜在损失。用客户能理解的商业语言，不要变成法律条文罗列。",',
+            f'  "onboarding_flow": "此处应写一段至少 200 字的接入流程说明。详细描述从签约到成功收款的完整流程：(1) 申请阶段——需要提交哪些资料、资料准备周期是多久；(2) 审核阶段——Ksher 合规团队的审核流程和时间承诺；(3) 技术对接——是否需要技术人员参与、集成方式有哪些选择；(4) 测试上线——测试环境验证、首笔收款确认；(5) 后续支持——专属客户经理的持续服务机制。让客户感到门槛低、流程清晰、有专人支持。",',
+            f'  "next_steps": "此处应写一段至少 200 字的下一步行动方案。给出三个明确可执行的行动步骤，每个步骤都包含：(1) 具体做什么——安排 30 分钟线上沟通而不是我们开始吧；(2) 何时完成——给出明确的时间框架；(3) 谁来负责——说明 Ksher 会提供哪些支持资源；(4) 预期产出——这步完成后能达到什么效果。整体语气要积极但不催促，让客户感受到是在帮助他们做出更好的决策，而不是推销压力。"',
             f"}}",
             f"```",
             f"",
@@ -143,16 +143,23 @@ class ProposalAgent(BaseAgent):
         return "\n".join(lines)
 
     def _validate_output(self, parsed: dict) -> bool:
-        """验证输出是否包含所有必需字段"""
+        """验证输出是否包含所有必需字段，且每个字段足够长"""
         required = [
             "industry_insight", "pain_diagnosis", "solution",
             "product_recommendation", "fee_advantage", "compliance",
             "onboarding_flow", "next_steps",
         ]
-        return all(k in parsed and parsed[k] for k in required)
+        if not all(k in parsed and parsed[k] for k in required):
+            return False
+        # 每个字段至少 150 字（留出 margin，低于 150 视为 LLM 未充分展开）
+        MIN_LENGTH = 150
+        for key in required:
+            if len(str(parsed[key])) < MIN_LENGTH:
+                return False
+        return True
 
     def _parse_text_response(self, text: str, context: dict) -> dict:
-        """回退解析：按章节标题提取内容"""
+        """回退解析：优先提取 markdown 代码块中的 JSON，其次按章节标题提取"""
         import re
 
         result = {key: "" for key in [
@@ -161,7 +168,24 @@ class ProposalAgent(BaseAgent):
             "onboarding_flow", "next_steps",
         ]}
 
-        # 章节标题映射
+        # 1. 优先尝试提取 markdown 代码块中的 JSON
+        json_block_match = re.search(
+            r'```(?:json)?\s*\n?(.*?)\n?```',
+            text, re.DOTALL
+        )
+        if json_block_match:
+            try:
+                parsed = json.loads(json_block_match.group(1).strip())
+                for key in result:
+                    if key in parsed and parsed[key]:
+                        result[key] = str(parsed[key]).strip()
+                # 若提取到 ≥5 个字段则认为成功
+                if sum(1 for v in result.values() if v) >= 5:
+                    return self._fill_defaults(result, context)
+            except (json.JSONDecodeError, TypeError):
+                pass  # 回退到章节标题提取
+
+        # 2. 章节标题映射（JSON 解析失败时使用）
         title_patterns = {
             "industry_insight": r"(?:一、|1\.?\s*)[\s\S]*?行业洞察|行业趋势|行业现状",
             "pain_diagnosis": r"(?:二、|2\.?\s*)[\s\S]*?痛点诊断|痛点分析|客户挑战",

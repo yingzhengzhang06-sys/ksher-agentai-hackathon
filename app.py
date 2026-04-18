@@ -18,6 +18,10 @@ from config import (
     BRAND_COLORS,
 )
 from ui.components.sidebar import render_sidebar
+from ui.components.error_handlers import (
+    render_mock_fallback_notice,
+    render_network_error,
+)
 
 
 # ============================================================
@@ -376,9 +380,9 @@ _init_session_state()
 # ---- 显示初始化状态（仅在开发阶段） ----
 if not st.session_state.get("battle_router_ready", False):
     err = st.session_state.get("battle_router_error", "未知错误")
-    st.warning(
-        f"⚠️ BattleRouter 初始化失败：{err}\n\n"
-        f"系统将自动回退到 Mock 模式。请检查 API Key 配置（.env 文件）。"
+    render_mock_fallback_notice(
+        "BattleRouter 初始化失败，系统已回退到 Mock 模式",
+        f"{err} — 请检查 API Key 配置（.env 文件）"
     )
 
 

@@ -1,0 +1,147 @@
+{
+  "version": "2.0",
+  "last_updated": "2026-04-17",
+  "notes": "标准定价（D级客户基准），分层定价见 fee_structure.md",
+  "ksher": {
+    "b2c": {
+      "name": "跨境电商收款",
+      "countries": {
+        "thailand": {
+          "currency": "THB",
+          "fee_rate": 0.008,
+          "fx_benchmark": "泰国中行零售牌价",
+          "settlement_days": 1,
+          "min_fee_local": 15
+        },
+        "malaysia": {
+          "currency": "MYR",
+          "fee_rate": 0.008,
+          "fx_benchmark": "马来中行零售牌价",
+          "settlement_days": 1,
+          "min_fee_local": 1
+        },
+        "philippines": {
+          "currency": "PHP",
+          "fee_rate": 0.008,
+          "fx_benchmark": "菲律宾中行零售牌价",
+          "settlement_days": 1,
+          "min_fee_local": 10
+        },
+        "indonesia": {
+          "currency": "IDR",
+          "fee_rate": 0.008,
+          "fx_benchmark": "印尼中行零售牌价",
+          "settlement_days": 1,
+          "min_fee_local": 5000
+        },
+        "vietnam": {
+          "currency": "VND",
+          "fee_rate": 0.01,
+          "fx_benchmark": "开时价格（XE中间价格劣化一定比例）",
+          "settlement_days": 1,
+          "min_fee_local": null
+        }
+      }
+    },
+    "b2b": {
+      "name": "跨境货贸收款",
+      "countries": {
+        "thailand": {
+          "currency": "THB",
+          "fee_rate": 0.004,
+          "fx_benchmark": "泰国中行零售牌价",
+          "settlement_days": 1
+        },
+        "malaysia": {
+          "currency": "MYR",
+          "fee_rate": 0.004,
+          "fx_benchmark": "马来中行零售牌价",
+          "settlement_days": 1
+        },
+        "philippines": {
+          "currency": "PHP",
+          "fee_rate": 0.004,
+          "fx_benchmark": "菲律宾中行零售牌价",
+          "settlement_days": 1
+        },
+        "indonesia": {
+          "currency": "IDR",
+          "fee_rate": 0.004,
+          "fx_benchmark": "印尼中行零售牌价",
+          "settlement_days": 1
+        },
+        "europe": {
+          "currency": "EUR",
+          "fee_rate": 0.004,
+          "fx_benchmark": "中银香港零售牌价",
+          "settlement_days": 1
+        },
+        "hongkong": {
+          "currency": "HKD",
+          "fee_rate": 0.004,
+          "fx_benchmark": "中银香港零售牌价",
+          "settlement_days": 1
+        },
+        "vietnam": {
+          "currency": "VND",
+          "fee_rate": 0.02,
+          "fx_benchmark": "开时价格（XE中间价格劣化一定比例）",
+          "settlement_days": 1
+        }
+      }
+    },
+    "buyer_payment": {
+      "name": "买家付款",
+      "countries": {
+        "thailand": { "fee_rate_cap": 0.008, "fx_benchmark": "泰国中行零售牌价" },
+        "malaysia": { "fee_rate_cap": 0.008, "fx_benchmark": "马来中行零售牌价" },
+        "philippines": { "fee_rate_cap": 0.008, "fx_benchmark": "菲律宾中行零售牌价" },
+        "indonesia": { "fee_rate_cap": 0.008, "fx_benchmark": "印尼中行零售牌价" }
+      }
+    }
+  },
+  "bank": {
+    "name": "银行电汇",
+    "wire_transfer": {
+      "fee_fixed_per_transaction": 150,
+      "fee_rate": 0.015,
+      "fx_spread": 0.008,
+      "settlement_days": 3
+    }
+  },
+  "competitors": {
+    "pingpong": {
+      "name": "PingPong",
+      "b2c_fee_rate": 0.008,
+      "b2b_fee_rate": 0.004,
+      "fx_spread": 0.005,
+      "settlement_days": 2,
+      "notes": "东南亚无本地牌照，到账需中转"
+    },
+    "worldfirst": {
+      "name": "万里汇",
+      "b2c_fee_rate": 0.008,
+      "b2b_fee_rate": 0.004,
+      "fx_spread": 0.005,
+      "settlement_days": 2,
+      "notes": "阿里系，东南亚覆盖有限"
+    },
+    "xtransfer": {
+      "name": "XTransfer",
+      "b2c_fee_rate": 0.01,
+      "b2b_fee_rate": 0.005,
+      "fx_spread": 0.006,
+      "settlement_days": 2,
+      "notes": "B2B为主，B2C能力弱"
+    }
+  },
+  "customer_tiers": {
+    "S": { "min_monthly_usd": 500000, "label": "S级" },
+    "A": { "min_monthly_usd": 200000, "label": "A级" },
+    "B": { "min_monthly_usd": 100000, "label": "B级" },
+    "C": { "min_monthly_usd": 50000, "label": "C级" },
+    "D": { "min_monthly_usd": 20000, "label": "D级" },
+    "E": { "min_monthly_usd": 1000, "label": "E级" },
+    "F": { "min_monthly_usd": 0, "label": "F级" }
+  }
+}

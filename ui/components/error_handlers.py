@@ -180,8 +180,10 @@ def render_empty_state(
 # ============================================================
 # 6. 降级提示（Mock模式）
 # ============================================================
-def render_mock_fallback_notice():
+def render_mock_fallback_notice(title: str = "", detail: str = ""):
     """渲染 Mock 降级提示"""
+    msg = title if title else "当前使用 Mock 数据演示。真实 AI 模式需配置 API Key。"
+    detail_html = f"<br><span style='font-size: 0.75rem; color: {BRAND_COLORS['text_secondary']};'>{detail}</span>" if detail else ""
     st.markdown(
         f"""
         <div style='
@@ -196,7 +198,7 @@ def render_mock_fallback_notice():
         '>
             <span style='font-size: 1rem;'>⚡</span>
             <span style='font-size: 0.8rem; color: {BRAND_COLORS["warning"]};'>
-                当前使用 Mock 数据演示。真实 AI 模式需配置 API Key。
+                {msg}{detail_html}
             </span>
         </div>
         """,

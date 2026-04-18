@@ -11,6 +11,7 @@
 import streamlit as st
 
 from config import BRAND_COLORS, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
+from ui.components.error_handlers import render_error, render_empty_state
 
 
 # ============================================================
@@ -324,7 +325,7 @@ def render_content_factory():
     # ---- 生成结果 ----
     if generate_clicked:
         if not topic:
-            st.error("⚠️ 请输入客户/主题名")
+            render_error("请输入客户/主题名", "客户/主题名是生成内容的必填项。")
             return
 
         with st.spinner("🤖 AI 正在生成内容..."):
@@ -342,7 +343,13 @@ def render_content_factory():
 
     # ---- 展示结果 ----
     contents = st.session_state.get("cf_contents", [])
-    if contents:
+    if not contents:
+        render_empty_state(
+            icon="📝",
+            title="内容工厂",
+            description="在上方选择行业和场景，点击「生成内容」即可批量创建朋友圈 / LinkedIn / 邮件 / 微信文案。",
+        )
+    elif contents:
         st.markdown("---")
         st.markdown(f"#### 📋 生成的 {scene} 内容")
 

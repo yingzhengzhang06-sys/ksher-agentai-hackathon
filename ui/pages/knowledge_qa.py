@@ -11,6 +11,7 @@
 import streamlit as st
 
 from config import BRAND_COLORS
+from ui.components.error_handlers import render_empty_state
 
 
 # ============================================================
@@ -251,7 +252,13 @@ def render_knowledge_qa():
     last_q = st.session_state.get("kq_last_question", "")
     last_a = st.session_state.get("kq_last_answer", {})
 
-    if last_a:
+    if not last_a:
+        render_empty_state(
+            icon="📚",
+            title="知识问答",
+            description="在上方输入框中输入你的产品问题，例如：「泰国B2B费率是多少？」",
+        )
+    else:
         st.markdown("---")
         st.markdown(f"#### 💬 问题：{last_q}")
 

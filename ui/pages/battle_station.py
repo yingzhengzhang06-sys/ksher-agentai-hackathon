@@ -84,28 +84,47 @@ def _mock_speech_pack(context: dict) -> dict:
 
 
 def _mock_cost_pack(context: dict) -> dict:
-    """Mock CostAgent 输出"""
+    """Mock CostAgent 输出 —— 根据当前渠道差异化费率"""
     volume = context.get("monthly_volume", 50.0)
     annual = volume * 12
 
+    channel = context.get("current_channel", "")
+
+    # 渠道差异化费率
+    if channel == "银行电汇":
+        rate = 0.040  # 银行：层层中间行 + 不透明汇率
+        fee, fx, time_c = 0.018, 0.014, 0.006
+        rate_label = "4.0%"
+    elif channel in ["PingPong", "万里汇", "XTransfer", "连连支付", "光子易", "空中云汇"]:
+        rate = 0.025  # 竞品：费率已较低，但仍有汇损和到账时间问题
+        fee, fx, time_c = 0.012, 0.008, 0.003
+        rate_label = "2.5%"
+    else:
+        rate = 0.035  # 默认 / 未选定
+        fee, fx, time_c = 0.015, 0.012, 0.005
+        rate_label = "3.5%"
+
     ksher_total = annual * 0.018
-    current_total = annual * 0.035
+    current_total = annual * rate
     saving = current_total - ksher_total
+
+    # 各渠道在 Ksher 下的节省分项
+    ksher_fee, ksher_fx, ksher_time = annual * 0.008, annual * 0.005, annual * 0.002
 
     return {
         "comparison_table": {
             "ksher": {
-                "fee": annual * 0.008,
-                "fx_loss": annual * 0.005,
-                "time_cost": annual * 0.002,
+                "fee": ksher_fee,
+                "fx_loss": ksher_fx,
+                "time_cost": ksher_time,
                 "mgmt_cost": annual * 0.002,
                 "compliance_cost": annual * 0.001,
                 "total": ksher_total,
             },
             "current": {
-                "fee": annual * 0.015,
-                "fx_loss": annual * 0.012,
-                "time_cost": annual * 0.005,
+                "fee": annual * fee,
+                "fx_loss": annual * fx,
+                "time_cost": annual * time_c,
                 "mgmt_cost": annual * 0.002,
                 "compliance_cost": annual * 0.001,
                 "total": current_total,
@@ -114,16 +133,16 @@ def _mock_cost_pack(context: dict) -> dict:
         "annual_saving": saving,
         "chart_data": {
             "categories": ["手续费", "汇损", "时间成本", "管理成本", "合规成本"],
-            "ksher": [annual * 0.008, annual * 0.005, annual * 0.002, annual * 0.002, annual * 0.001],
-            "current": [annual * 0.015, annual * 0.012, annual * 0.005, annual * 0.002, annual * 0.001],
+            "ksher": [ksher_fee, ksher_fx, ksher_time, annual * 0.002, annual * 0.001],
+            "current": [annual * fee, annual * fx, annual * time_c, annual * 0.002, annual * 0.001],
         },
         "summary": (
             f"基于您月流水 {volume} 万人民币估算，年度总收款额约 {annual} 万元。\n\n"
             f"切换到 Ksher 后，预计年节省 **{saving:,.1f} 万元**，主要来自三个方面：\n"
-            f"1. **手续费降低**：Ksher 费率透明，无中间行扣费，年省约 {annual * 0.007:,.1f} 万元\n"
-            f"2. **汇损收窄**：锁汇+更优汇率，年省约 {annual * 0.007:,.1f} 万元\n"
-            f"3. **时间价值**：T+1到账减少资金占用，年省约 {annual * 0.003:,.1f} 万元\n\n"
-            f"综合费率从 3.5% 降至 1.8%，节省比例约 **48%**。"
+            f"1. **手续费降低**：Ksher 费率透明，无中间行扣费，年省约 {annual * (fee - 0.008):,.1f} 万元\n"
+            f"2. **汇损收窄**：锁汇+更优汇率，年省约 {annual * (fx - 0.005):,.1f} 万元\n"
+            f"3. **时间价值**：T+1到账减少资金占用，年省约 {annual * (time_c - 0.002):,.1f} 万元\n\n"
+            f"综合费率从 {rate_label} 降至 1.8%，节省比例约 **{((rate - 0.018) / rate * 100):.0f}%**。"
         ),
     }
 

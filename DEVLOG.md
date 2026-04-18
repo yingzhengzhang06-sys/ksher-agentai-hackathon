@@ -489,6 +489,48 @@ Demo可在线访问 + UI美化 + 演示脚本熟练
 13 files changed, 2348 insertions(+), 104 deletions(-)
 ```
 
+### 终端3（知识库）产出
+
+| 优先级 | 任务 | 状态 | 文件 |
+|--------|------|------|------|
+| P0 | 知识库文档扩充 | ✅ | `knowledge/` 32 个 Markdown 文档 |
+| P0 | 知识库索引升级 | ✅ | `knowledge/index.json` v1.2 |
+| P1 | 演示场景知识包 | ✅ | `knowledge/demo_scenarios/` 3 个文档 |
+| P2 | Prompt 质量检查 | ✅ | 全部 5 个 Prompt 文件通过 |
+
+#### 知识库扩展详情
+
+- **总量**：32 个 Markdown 文档（Day 2 为 16 个，翻倍）
+- **index.json v1.2**：33 个文档条目 / 38 个标签 / 7 国覆盖
+- **新增国家**：B2C 马来西亚、B2B 欧洲、B2B 香港
+- **新增竞品文档**：WorldFirst、XTransfer 详细分析
+- **agent_doc_map 更新**：
+  - `proposal`：22 个文档（原 11 个，新增 11 个）
+  - `speech`：21 个文档（原 11 个，新增 10 个）
+  - `cost`：14 个文档（原 8 个，新增 6 个）
+  - `knowledge`：22 个文档（原 11 个，新增 11 个）
+
+#### 演示场景知识包
+
+| 文件 | 内容 | 用途 |
+|------|------|------|
+| `scenario_a_bank.md` | 深圳外贸工厂 / B2B / 泰国 / 银行电汇 / 增量战场 | 路演 Demo 场景 A |
+| `scenario_b_competitor.md` | 义乌 Shopee 卖家 / B2C / 泰国 / PingPong / 存量战场 | 路演 Demo 场景 B |
+| `qa_faq.md` | 评审团常见 Q&A + 标准答案 | 路演 Q&A 准备 |
+
+#### Prompt 质量检核
+
+| 检查项 | 结果 |
+|--------|------|
+| `speech_prompt.py` 微信跟进 8 种 regex 匹配 | ✅ 通过 |
+| `system_prompts.py` Proposal 章节长度 ≥200 字 | ✅ 通过 |
+| `objection_agent.py` "恰好 3 个"约束 | ✅ 通过 |
+| 全部 Prompt 文件无语法错误 | ✅ 通过 |
+
+### Day 4 完成度
+
+**100% 完成** — 前端 CSS 美化 + 仪表盘 + 错误处理 + 知识库扩充 + 演示场景知识包全部就绪。
+
 ---
 
 ## Day 7 — 提交日（2026-04-22）

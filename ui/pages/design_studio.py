@@ -201,8 +201,8 @@ def _mock_ppt_outline(industry: str, country: str, company: str) -> dict:
 # ============================================================
 def render_design_studio():
     """渲染设计工作室页面"""
-    st.title("🎨 设计工作室")
-    st.markdown(
+ st.title(" 设计工作室")
+ st.markdown(
         f"""
         <span style='color:{BRAND_COLORS["text_secondary"]};font-size:0.95rem;'>
             一键生成营销海报文案和方案PPT大纲
@@ -210,10 +210,10 @@ def render_design_studio():
         """,
         unsafe_allow_html=True,
     )
-    st.markdown("---")
+ st.markdown("---")
 
     # ---- 功能切换 ----
-    tab_poster, tab_ppt = st.tabs(["📢 营销海报", "📊 方案PPT"])
+ tab_poster, tab_ppt = st.tabs([" 营销海报"," 方案PPT"])
 
     with tab_poster:
         _render_poster_tab()
@@ -224,7 +224,7 @@ def render_design_studio():
 
 def _render_poster_tab():
     """渲染海报生成Tab"""
-    st.markdown("#### 📢 营销海报文案生成")
+ st.markdown("#### 营销海报文案生成")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -247,18 +247,18 @@ def _render_poster_tab():
             key="ds_country",
         )
 
-    if st.button("✨ 生成海报文案", type="primary", key="ds_gen_poster"):
-        with st.spinner("AI 正在生成海报文案..."):
+ if st.button(" 生成海报文案", type="primary", key="ds_gen_poster"):
+ with st.spinner("AI 正在生成海报文案..."):
             poster = _mock_poster_copy(industry, country, theme)
             st.session_state.ds_poster = poster
 
     poster = st.session_state.get("ds_poster")
     if poster:
-        st.markdown("---")
-        st.markdown("#### 🎨 海报文案")
+ st.markdown("---")
+ st.markdown("#### 海报文案")
 
         # 海报预览
-        st.markdown(
+ st.markdown(
             f"""
             <div style='
                 background: {BRAND_COLORS["surface"]};
@@ -302,10 +302,10 @@ def _render_poster_tab():
         )
 
         # 设计规格
-        with st.expander("📐 设计规格"):
-            st.markdown(f"**配色方案**：{poster['color_scheme']}")
-            st.markdown(f"**尺寸**：{poster['size']}")
-            st.markdown(f"**设计建议**：{poster['tips']}")
+ with st.expander(" 设计规格"):
+ st.markdown(f"**配色方案**：{poster['color_scheme']}")
+ st.markdown(f"**尺寸**：{poster['size']}")
+ st.markdown(f"**设计建议**：{poster['tips']}")
 
         # 复制全部
         full_copy = (
@@ -323,7 +323,7 @@ def _render_poster_tab():
 
 def _render_ppt_tab():
     """渲染PPT生成Tab"""
-    st.markdown("#### 📊 方案PPT大纲生成")
+ st.markdown("#### 方案PPT大纲生成")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -346,28 +346,28 @@ def _render_ppt_tab():
             key="ds_ppt_country",
         )
 
-    if st.button("✨ 生成PPT大纲", type="primary", key="ds_gen_ppt"):
+ if st.button(" 生成PPT大纲", type="primary", key="ds_gen_ppt"):
         if not company:
             render_error("请输入客户公司名", "客户公司名是生成PPT的必填项。")
             return
 
-        with st.spinner("AI 正在生成PPT大纲..."):
+ with st.spinner("AI 正在生成PPT大纲..."):
             ppt = _mock_ppt_outline(industry, country, company)
             st.session_state.ds_ppt = ppt
 
     ppt = st.session_state.get("ds_ppt")
     if ppt:
-        st.markdown("---")
-        st.markdown(f"#### 📋 {ppt['title']}")
-        st.caption(f"{ppt['subtitle']} | 共 {ppt['total_slides']} 页 | 预计讲解 {ppt['estimated_time']}")
+ st.markdown("---")
+ st.markdown(f"#### {ppt['title']}")
+ st.caption(f"{ppt['subtitle']} | 共 {ppt['total_slides']} 页 | 预计讲解 {ppt['estimated_time']}")
 
         for slide in ppt["slides"]:
-            with st.expander(f"第{slide['slide_num']}页：{slide['title']}", expanded=slide['slide_num'] <= 3):
-                st.markdown(f"**内容**：\n{slide['content']}")
-                st.markdown(f"**备注**：{slide['notes']}")
+ with st.expander(f"第{slide['slide_num']}页：{slide['title']}", expanded=slide['slide_num'] <= 3):
+ st.markdown(f"**内容**：\n{slide['content']}")
+ st.markdown(f"**备注**：{slide['notes']}")
 
         # 导出全部
-        with st.expander("📋 复制完整PPT大纲"):
+ with st.expander(" 复制完整PPT大纲"):
             full_text = f"# {ppt['title']}\n\n{ppt['subtitle']}\n\n"
             for slide in ppt["slides"]:
                 full_text += f"## 第{slide['slide_num']}页：{slide['title']}\n\n"

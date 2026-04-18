@@ -265,8 +265,8 @@ def _mock_generate_content(
 # ============================================================
 def render_content_factory():
     """渲染内容工厂页面"""
-    st.title("📝 内容工厂")
-    st.markdown(
+ st.title(" 内容工厂")
+ st.markdown(
         f"""
         <span style='color:{BRAND_COLORS["text_secondary"]};font-size:0.95rem;'>
             批量生成朋友圈 / LinkedIn / 邮件 / 微信话术，一键复制使用
@@ -274,7 +274,7 @@ def render_content_factory():
         """,
         unsafe_allow_html=True,
     )
-    st.markdown("---")
+ st.markdown("---")
 
     # ---- 输入区域 ----
     col1, col2 = st.columns(2)
@@ -311,12 +311,12 @@ def render_content_factory():
 
     count = st.slider("生成数量", min_value=1, max_value=4, value=3, key="cf_count")
 
-    st.markdown("---")
+ st.markdown("---")
 
     # ---- 生成按钮 ----
     col_btn1, _ = st.columns([1, 4])
     with col_btn1:
-        generate_clicked = st.button(
+ generate_clicked = st.button(
             "✨ 生成内容",
             use_container_width=True,
             type="primary",
@@ -328,7 +328,7 @@ def render_content_factory():
             render_error("请输入客户/主题名", "客户/主题名是生成内容的必填项。")
             return
 
-        with st.spinner("🤖 AI 正在生成内容..."):
+ with st.spinner(" AI 正在生成内容..."):
             contents = _mock_generate_content(
                 industry=industry,
                 target_country=country,
@@ -339,27 +339,27 @@ def render_content_factory():
             )
             st.session_state.cf_contents = contents
 
-        st.success(f"✅ 已生成 {len(contents)} 条{scene}内容！")
+ st.success(f" 已生成 {len(contents)} 条{scene}内容！")
 
     # ---- 展示结果 ----
     contents = st.session_state.get("cf_contents", [])
     if not contents:
         render_empty_state(
-            icon="📝",
+ icon="",
             title="内容工厂",
             description="在上方选择行业和场景，点击「生成内容」即可批量创建朋友圈 / LinkedIn / 邮件 / 微信文案。",
         )
     elif contents:
-        st.markdown("---")
-        st.markdown(f"#### 📋 生成的 {scene} 内容")
+ st.markdown("---")
+ st.markdown(f"#### 生成的 {scene} 内容")
 
         for item in contents:
             with st.container():
-                st.markdown(
+ st.markdown(
                     f"""
                     <div style='
                         background: {BRAND_COLORS["surface"]};
-                        border: 1px solid #E8E8ED;
+                        border: 1px solid #e5e6ea;
                         border-radius: 0.6rem;
                         padding: 1rem;
                         margin-bottom: 1rem;
@@ -376,7 +376,7 @@ def render_content_factory():
                             <span style='
                                 color: {BRAND_COLORS["text_muted"]};
                                 font-size: 0.75rem;
-                                background: #F5F5F7;
+                                background: #f2f2f3;
                                 padding: 0.15rem 0.5rem;
                                 border-radius: 0.3rem;
                             '>
@@ -393,7 +393,7 @@ def render_content_factory():
                         <div style='
                             color: {BRAND_COLORS["text_muted"]};
                             font-size: 0.75rem;
-                            border-top: 1px solid #E8E8ED;
+                            border-top: 1px solid #e5e6ea;
                             padding-top: 0.5rem;
                         '>
                             💡 {item['tips']}
@@ -409,7 +409,7 @@ def render_content_factory():
                     st.code(item["content"], language="text")
 
         # 全部复制
-        with st.expander("📋 复制全部内容"):
+ with st.expander(" 复制全部内容"):
             all_text = "\n\n" + "=" * 40 + "\n\n".join(
                 f"【{c['title']}】\n{c['content']}" for c in contents
             )

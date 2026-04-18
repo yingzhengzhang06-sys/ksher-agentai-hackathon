@@ -26,7 +26,7 @@ def render_network_error(on_retry=None):
     Args:
         on_retry: 重试回调函数（无参数）
     """
-    st.markdown(
+ st.markdown(
         f"""
         <div style='
             background: rgba(232, 62, 76, 0.06);
@@ -37,7 +37,7 @@ def render_network_error(on_retry=None):
             margin: 1rem 0;
         '>
             <div style='font-size: 2rem; margin-bottom: 0.5rem;'>🌐</div>
-            <div style='font-size: 1.1rem; font-weight: 600; color: #1D1D1F; margin-bottom: 0.3rem;'>
+            <div style='font-size: 1.1rem; font-weight: 600; color: #1d2129; margin-bottom: 0.3rem;'>
                 网络连接异常
             </div>
             <div style='font-size: 0.85rem; color: {BRAND_COLORS["text_secondary"]}; margin-bottom: 1rem;'>
@@ -47,8 +47,8 @@ def render_network_error(on_retry=None):
         """,
         unsafe_allow_html=True,
     )
-    if on_retry and st.button("🔄 重新加载", type="primary", use_container_width=True):
-        with st.spinner("正在重试..."):
+ if on_retry and st.button(" 重新加载", type="primary", use_container_width=True):
+ with st.spinner("正在重试..."):
             time.sleep(0.5)
         on_retry()
         st.rerun()
@@ -59,7 +59,7 @@ def render_network_error(on_retry=None):
 # ============================================================
 def render_quota_exceeded():
     """渲染API额度不足提示"""
-    st.markdown(
+ st.markdown(
         f"""
         <div style='
             background: rgba(255, 184, 0, 0.06);
@@ -70,7 +70,7 @@ def render_quota_exceeded():
             margin: 1rem 0;
         '>
             <div style='font-size: 2rem; margin-bottom: 0.5rem;'>⚡</div>
-            <div style='font-size: 1.1rem; font-weight: 600; color: #1D1D1F; margin-bottom: 0.3rem;'>
+            <div style='font-size: 1.1rem; font-weight: 600; color: #1d2129; margin-bottom: 0.3rem;'>
                 API 调用额度不足
             </div>
             <div style='font-size: 0.85rem; color: {BRAND_COLORS["text_secondary"]}; margin-bottom: 1rem;'>
@@ -94,7 +94,7 @@ def render_error(message: str, detail: str = ""):
         message: 错误标题
         detail: 错误详情（可选）
     """
-    st.markdown(
+ st.markdown(
         f"""
         <div style='
             background: rgba(232, 62, 76, 0.08);
@@ -105,7 +105,7 @@ def render_error(message: str, detail: str = ""):
         '>
             <div style='display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem;'>
                 <span style='font-size: 1.2rem;'>⚠️</span>
-                <span style='font-size: 1rem; font-weight: 600; color: #1D1D1F;'>{message}</span>
+                <span style='font-size: 1rem; font-weight: 600; color: #1d2129;'>{message}</span>
             </div>
             {f"<div style='font-size: 0.85rem; color: {BRAND_COLORS['text_secondary']}; padding-left: 1.8rem;'>{detail}</div>" if detail else ""}
         </div>
@@ -124,7 +124,7 @@ def render_loading(message: str = "正在加载..."):
     Args:
         message: 加载提示文字
     """
-    with st.spinner(f"⏳ {message}"):
+ with st.spinner(f"⏳ {message}"):
         # spinner 颜色通过 CSS 控制（已在 app.py 中设置 .stSpinner > div 品牌色）
         pass
 
@@ -149,18 +149,18 @@ def render_empty_state(
         action_label: 操作按钮文字（None则不显示）
         action_callback: 操作回调
     """
-    st.markdown(
+ st.markdown(
         f"""
         <div style='
             background: {BRAND_COLORS["surface"]};
-            border: 1px dashed #D2D2D7;
+            border: 1px dashed #dadce2;
             border-radius: 0.75rem;
             padding: 3rem 2rem;
             text-align: center;
             margin: 1rem 0;
         '>
             <div style='font-size: 3rem; margin-bottom: 0.8rem; opacity: 0.6;'>{icon}</div>
-            <div style='font-size: 1.1rem; font-weight: 600; color: #1D1D1F; margin-bottom: 0.4rem;'>
+            <div style='font-size: 1.1rem; font-weight: 600; color: #1d2129; margin-bottom: 0.4rem;'>
                 {title}
             </div>
             <div style='font-size: 0.85rem; color: {BRAND_COLORS["text_secondary"]}; max-width: 300px; margin: 0 auto;'>
@@ -173,7 +173,7 @@ def render_empty_state(
     if action_label and action_callback:
         col1, col2, col3 = st.columns([1, 1, 1])
         with col2:
-            if st.button(action_label, type="primary", use_container_width=True):
+ if st.button(action_label, type="primary", use_container_width=True):
                 action_callback()
 
 
@@ -184,7 +184,7 @@ def render_mock_fallback_notice(title: str = "", detail: str = ""):
     """渲染 Mock 降级提示"""
     msg = title if title else "当前使用 Mock 数据演示。真实 AI 模式需配置 API Key。"
     detail_html = f"<br><span style='font-size: 0.75rem; color: {BRAND_COLORS['text_secondary']};'>{detail}</span>" if detail else ""
-    st.markdown(
+ st.markdown(
         f"""
         <div style='
             background: rgba(255, 184, 0, 0.05);

@@ -62,11 +62,10 @@ def _inject_brand_css():
         --ksher-accent: {accent};
         --ksher-text-secondary: {text_secondary};
         --ksher-text-muted: {text_muted};
-        --radius-sm: 0.5rem;
-        --radius-md: 0.75rem;
-        --radius-lg: 1rem;
-        --radius-xl: 1.25rem;
-        --radius-pill: 9999px;
+        --radius-sm: 0.25rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
         --transition-fast: 0.15s ease;
         --transition-normal: 0.25s ease;
     }}
@@ -85,10 +84,10 @@ def _inject_brand_css():
     /* ===== Sidebar (light gray) ===== */
     [data-testid="stSidebar"] {{
         background-color: {surface} !important;
-        border-right: 1px solid #E8E8ED;
+        border-right: 1px solid #e5e6ea;
     }}
     [data-testid="stSidebar"] .stRadio label {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
         font-size: 0.95rem;
         padding: 0.55rem 0.9rem;
         border-radius: var(--radius-md);
@@ -105,45 +104,39 @@ def _inject_brand_css():
         font-weight: 600;
     }}
 
-    /* ===== Pill-shaped primary buttons (Apple style) ===== */
+    /* ===== Primary buttons (small rounded corners, get-notes style) ===== */
     .stButton > button {{
         background-color: {primary} !important;
         color: #FFFFFF !important;
         border: none !important;
-        border-radius: var(--radius-pill) !important;
+        border-radius: var(--radius-md) !important;
         font-weight: 500 !important;
         font-size: 0.9rem !important;
-        padding: 0.55rem 1.5rem !important;
-        transition: opacity var(--transition-fast), transform var(--transition-fast) !important;
-        letter-spacing: 0.01em;
+        padding: 0.5rem 1.25rem !important;
+        transition: background-color var(--transition-fast) !important;
     }}
     .stButton > button:hover {{
         background-color: {primary_dark} !important;
-        opacity: 0.92;
-    }}
-    .stButton > button:active {{
-        transform: scale(0.97);
     }}
 
-    /* ===== Secondary buttons (pill + outline) ===== */
+    /* ===== Secondary buttons (small rounded + outline) ===== */
     .stButton > button[kind="secondary"] {{
         background-color: transparent !important;
         color: {primary} !important;
-        border: 1.5px solid {primary} !important;
+        border: 1px solid {primary} !important;
     }}
     .stButton > button[kind="secondary"]:hover {{
         background-color: rgba(232, 62, 76, 0.06) !important;
-        opacity: 1;
     }}
 
     /* ===== Tab style (clean, minimal) ===== */
     .stTabs [data-baseweb="tab-list"] {{
         gap: 4px;
-        border-bottom: 1px solid #E8E8ED;
+        border-bottom: 1px solid #e5e6ea;
         padding-bottom: 0;
     }}
     .stTabs [data-baseweb="tab"] {{
-        color: #86868B !important;
+        color: #8a8f99 !important;
         font-weight: 500;
         border-radius: var(--radius-md) var(--radius-md) 0 0;
         padding: 0.65rem 1.25rem;
@@ -151,7 +144,7 @@ def _inject_brand_css():
         border-bottom: 2px solid transparent;
     }}
     .stTabs [data-baseweb="tab"]:hover {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
         background-color: transparent;
     }}
     .stTabs [aria-selected="true"] {{
@@ -167,8 +160,8 @@ def _inject_brand_css():
     .stSelectbox > div > div > div,
     .stMultiselect > div > div > div {{
         background-color: #FFFFFF !important;
-        color: #1D1D1F !important;
-        border: 1px solid #D2D2D7 !important;
+        color: #1d2129 !important;
+        border: 1px solid #dadce2 !important;
         border-radius: var(--radius-md) !important;
         transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     }}
@@ -184,7 +177,7 @@ def _inject_brand_css():
     .stNumberInput > div > div > input:hover,
     .stSelectbox > div > div > div:hover,
     .stMultiselect > div > div > div:hover {{
-        border-color: #86868B !important;
+        border-color: #8a8f99 !important;
     }}
 
     /* ===== Cards / Containers (no shadow, subtle bg) ===== */
@@ -195,7 +188,7 @@ def _inject_brand_css():
         transition: background-color var(--transition-fast);
     }}
     div[data-testid="stExpander"]:hover {{
-        background-color: #EBEBF0;
+        background-color: #e5e6ea;
     }}
     div[data-testid="stExpander"] > div:first-child {{
         border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -213,7 +206,7 @@ def _inject_brand_css():
         border-left: 4px solid #3B82F6 !important;
     }}
     .stAlert[data-baseweb="notification"][data-kind="info"] [data-testid="stAlertContent"] {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
     /* Success - soft green */
     .stAlert[data-baseweb="notification"][data-kind="positive"] {{
@@ -221,7 +214,7 @@ def _inject_brand_css():
         border-left: 4px solid #00C9A7 !important;
     }}
     .stAlert[data-baseweb="notification"][data-kind="positive"] [data-testid="stAlertContent"] {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
     /* Warning - soft yellow */
     .stAlert[data-baseweb="notification"][data-kind="warning"] {{
@@ -229,7 +222,7 @@ def _inject_brand_css():
         border-left: 4px solid #FFB800 !important;
     }}
     .stAlert[data-baseweb="notification"][data-kind="warning"] [data-testid="stAlertContent"] {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
     /* Error - soft red */
     .stAlert[data-baseweb="notification"][data-kind="negative"] {{
@@ -237,7 +230,7 @@ def _inject_brand_css():
         border-left: 4px solid #E83E4C !important;
     }}
     .stAlert[data-baseweb="notification"][data-kind="negative"] [data-testid="stAlertContent"] {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
 
     /* ===== Metric cards (clean, minimal) ===== */
@@ -249,7 +242,7 @@ def _inject_brand_css():
         transition: background-color var(--transition-fast);
     }}
     [data-testid="stMetric"]:hover {{
-        background-color: #EBEBF0;
+        background-color: #e5e6ea;
     }}
     [data-testid="stMetricValue"] {{
         color: {primary} !important;
@@ -258,7 +251,7 @@ def _inject_brand_css():
         letter-spacing: -0.02em;
     }}
     [data-testid="stMetricLabel"] {{
-        color: #86868B !important;
+        color: #8a8f99 !important;
         font-size: 0.85rem;
         font-weight: 500;
     }}
@@ -281,7 +274,7 @@ def _inject_brand_css():
 
     /* ===== Divider (light gray) ===== */
     hr {{
-        border-color: #E8E8ED !important;
+        border-color: #e5e6ea !important;
         margin: 2rem 0 !important;
     }}
 
@@ -295,11 +288,11 @@ def _inject_brand_css():
         border-radius: 3px;
     }}
     ::-webkit-scrollbar-thumb {{
-        background: #D2D2D7;
+        background: #dadce2;
         border-radius: 3px;
     }}
     ::-webkit-scrollbar-thumb:hover {{
-        background: #86868B;
+        background: #8a8f99;
     }}
 
     /* ===== Data frame ===== */
@@ -308,7 +301,7 @@ def _inject_brand_css():
         overflow: hidden;
     }}
     .stDataFrame td, .stDataFrame th {{
-        border-color: #E8E8ED !important;
+        border-color: #e5e6ea !important;
     }}
 
     /* ===== Slider ===== */
@@ -329,33 +322,33 @@ def _inject_brand_css():
     h1 {{
         font-weight: 700 !important;
         letter-spacing: -0.03em;
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
         line-height: 1.1 !important;
     }}
     h2, h3 {{
         font-weight: 600 !important;
         letter-spacing: -0.02em;
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
     p, li, td, th {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
     .stMarkdown {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
 
     /* ===== Code blocks (light theme) ===== */
     .stCodeBlock {{
-        background-color: #F5F5F7 !important;
+        background-color: #f2f2f3 !important;
         border-radius: var(--radius-md) !important;
-        border: 1px solid #E8E8ED !important;
+        border: 1px solid #e5e6ea !important;
     }}
     .stCodeBlock pre {{
-        background-color: #F5F5F7 !important;
-        color: #1D1D1F !important;
+        background-color: #f2f2f3 !important;
+        color: #1d2129 !important;
     }}
     code {{
-        background-color: #F5F5F7 !important;
+        background-color: #f2f2f3 !important;
         color: #E83E4C !important;
         padding: 0.15rem 0.35rem !important;
         border-radius: 0.3rem !important;
@@ -365,40 +358,40 @@ def _inject_brand_css():
     /* ===== Form labels ===== */
     .stTextInput label, .stNumberInput label, .stSelectbox label,
     .stMultiselect label, .stTextArea label, .stSlider label {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
         font-weight: 500 !important;
         font-size: 0.9rem !important;
     }}
 
     /* ===== Checkbox / Radio labels ===== */
     .stCheckbox label, .stRadio label {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
 
     /* ===== Expander header text ===== */
     div[data-testid="stExpander"] > div:first-child p {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
         font-weight: 600 !important;
     }}
 
     /* ===== Caption / helper text ===== */
     .stCaption {{
-        color: #86868B !important;
+        color: #8a8f99 !important;
     }}
 
     /* ===== Toast notifications ===== */
     .toast-container {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
 
     /* ===== Data editor / table header ===== */
     .stDataFrame th {{
-        background-color: #F5F5F7 !important;
-        color: #1D1D1F !important;
+        background-color: #f2f2f3 !important;
+        color: #1d2129 !important;
         font-weight: 600 !important;
     }}
     .stDataFrame td {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
 
     /* ===== st.info icon colors ===== */
@@ -409,19 +402,19 @@ def _inject_brand_css():
     /* ===== Selectbox dropdown (light) ===== */
     div[data-baseweb="popover"] div {{
         background-color: #FFFFFF !important;
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
     div[data-baseweb="popover"] li {{
-        color: #1D1D1F !important;
+        color: #1d2129 !important;
     }}
     div[data-baseweb="popover"] li:hover {{
-        background-color: #F5F5F7 !important;
+        background-color: #f2f2f3 !important;
     }}
 
     /* ===== File uploader ===== */
     .stFileUploader > div > div {{
-        background-color: #F5F5F7 !important;
-        border: 2px dashed #D2D2D7 !important;
+        background-color: #f2f2f3 !important;
+        border: 2px dashed #dadce2 !important;
         border-radius: var(--radius-lg) !important;
     }}
     .stFileUploader > div > div:hover {{
@@ -431,7 +424,7 @@ def _inject_brand_css():
 
     /* ===== Tooltips ===== */
     div[data-baseweb="tooltip"] {{
-        background-color: #1D1D1F !important;
+        background-color: #1d2129 !important;
         color: #FFFFFF !important;
         border-radius: var(--radius-md) !important;
     }}

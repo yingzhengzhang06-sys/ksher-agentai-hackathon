@@ -41,9 +41,9 @@ def render_sidebar() -> str:
             # 兜底：文字 Logo
             col1, col2 = st.columns([1, 3])
             with col1:
-                st.markdown(f"<h1 style='font-size:2rem;margin:0;'>{PAGE_ICON}</h1>", unsafe_allow_html=True)
+ st.markdown(f"<h1 style='font-size:2rem;margin:0;'>{PAGE_ICON}</h1>", unsafe_allow_html=True)
             with col2:
-                st.markdown(
+ st.markdown(
                     f"""
                     <div style='margin-top:4px;'>
                         <span style='font-size:1.1rem;font-weight:700;color:{BRAND_COLORS["primary"]};'>
@@ -57,7 +57,7 @@ def render_sidebar() -> str:
                     unsafe_allow_html=True,
                 )
 
-        st.markdown("---")
+ st.markdown("---")
 
         # ---- 导航菜单（Radio） ----
         page_labels = [f"{icon} {name}" for icon, name in PAGE_ITEMS]
@@ -80,7 +80,7 @@ def render_sidebar() -> str:
         selected_page = page_map[selected_label]
         st.session_state.current_page = selected_page
 
-        st.markdown("---")
+ st.markdown("---")
 
         # ---- 当前客户快照（如果有） ----
         import html as _html
@@ -89,7 +89,7 @@ def render_sidebar() -> str:
             _company = _html.escape(str(ctx.get("company", "")))
             _industry = _html.escape(str(ctx.get("industry", "")))
             _country = _html.escape(str(ctx.get("target_country", "")))
-            st.markdown(
+ st.markdown(
                 f"""
                 <div style='
                     background: {BRAND_COLORS["surface"]};
@@ -101,7 +101,7 @@ def render_sidebar() -> str:
                     <div style='font-size:0.75rem;color:{BRAND_COLORS["text_secondary"]};margin-bottom:0.2rem;'>
                         当前客户
                     </div>
-                    <div style='font-size:0.9rem;font-weight:600;color:#1D1D1F;'>
+                    <div style='font-size:0.9rem;font-weight:600;color:#1d2129;'>
                         {_company}
                     </div>
                     <div style='font-size:0.75rem;color:{BRAND_COLORS["text_muted"]};margin-top:0.2rem;'>
@@ -114,7 +114,7 @@ def render_sidebar() -> str:
 
         # ---- 状态指示器 ----
         if st.session_state.get("battle_pack"):
-            st.markdown(
+ st.markdown(
                 f"""
                 <div style='
                     display: flex;
@@ -130,7 +130,7 @@ def render_sidebar() -> str:
                 unsafe_allow_html=True,
             )
         else:
-            st.markdown(
+ st.markdown(
                 f"""
                 <div style='
                     display: flex;
@@ -146,11 +146,11 @@ def render_sidebar() -> str:
                 unsafe_allow_html=True,
             )
 
-        st.markdown("<div style='flex-grow:1;'></div>", unsafe_allow_html=True)
+ st.markdown("<div style='flex-grow:1;'></div>", unsafe_allow_html=True)
 
         # ---- 底部信息 ----
-        st.markdown("---")
-        st.markdown(
+ st.markdown("---")
+ st.markdown(
             f"""
             <div style='text-align:center;font-size:0.7rem;color:{BRAND_COLORS["text_muted"]};'>
                 Ksher AgentAI v1.0<br>

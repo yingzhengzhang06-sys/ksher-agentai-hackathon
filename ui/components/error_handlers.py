@@ -9,11 +9,69 @@
   - 空状态
 """
 
+import base64
 import time
 
 import streamlit as st
 
 from config import BRAND_COLORS
+
+
+# ============================================================
+# 0. 通用复制按钮（HTML + JS，不触发 Streamlit rerun）
+# ============================================================
+def render_copy_button(text: str, label: str = "复制文案"):
+    """
+    渲染一键复制按钮。
+
+    使用 HTML button + JS navigator.clipboard.writeText()，
+    点击不触发 Streamlit rerun。
+
+    Args:
+        text: 要复制的文本内容
+        label: 按钮文字（默认"复制文案"）
+    """
+    b64 = base64.b64encode(text.encode("utf-8")).decode("ascii")
+    btn_id = "cp_{:06x}".format(hash(text) & 0xFFFFFF)
+    primary = BRAND_COLORS["primary"]
+    primary_dark = BRAND_COLORS["primary_dark"]
+
+    onclick_js = (
+        "(async function(){"
+        "const t=atob('" + b64 + "');"
+        "await navigator.clipboard.writeText(t);"
+        "const btn=document.getElementById('" + btn_id + "');"
+        "const orig=btn.innerText;"
+        "btn.innerText='已复制';"
+        "btn.style.background='#00C9A7';"
+        "setTimeout(function(){"
+        "btn.innerText=orig;"
+        "btn.style.background='" + primary + "';"
+        "},1500);"
+        "})();"
+    )
+
+    style_css = (
+        "background:" + primary + ";"
+        "color:#FFFFFF;"
+        "border:none;"
+        "border-radius:0.4rem;"
+        "padding:0.45rem 1.1rem;"
+        "font-size:0.85rem;"
+        "font-weight:500;"
+        "cursor:pointer;"
+        "transition:background 0.15s ease;"
+    )
+
+    html = (
+        '<button id="' + btn_id + '" '
+        'onclick="' + onclick_js + '" '
+        'style="' + style_css + '" '
+        'onmouseover="this.style.background=\'' + primary_dark + '\'" '
+        'onmouseout="this.style.background=\'' + primary + '\'"'
+        '>' + label + '</button>'
+    )
+    st.markdown(html, unsafe_allow_html=True)
 
 
 # ============================================================
@@ -133,7 +191,7 @@ def render_loading(message: str = "正在加载..."):
 # 5. 空状态设计
 # ============================================================
 def render_empty_state(
-    icon: str = "📭",
+    icon: str = "",
     title: str = "暂无数据",
     description: str = "开始使用后，相关内容将显示在这里",
     action_label: str = None,

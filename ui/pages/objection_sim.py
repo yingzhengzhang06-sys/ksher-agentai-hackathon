@@ -11,7 +11,7 @@
 import streamlit as st
 
 from config import BRAND_COLORS, BATTLEFIELD_TYPES
-from ui.components.error_handlers import render_error
+from ui.components.error_handlers import render_error, render_copy_button
 
 
 # ============================================================
@@ -240,33 +240,15 @@ def _render_battlefield_mode(battlefield: str):
 
             with tabs[0]:
                 st.markdown(obj["direct_response"])
-                st_copy = st.columns([1, 4])
-                with st_copy[0]:
-                    st.button(
-                        "📝 复制",
-                        key=f"copy_dir_{battlefield}_{i}",
-                        on_click=lambda text=obj["direct_response"]: st.session_state.update(
-                            {"_clipboard": text}
-                        ),
-                    )
+                render_copy_button(obj["direct_response"], label="复制直接回应")
 
             with tabs[1]:
                 st.markdown(obj["empathy_response"])
-                st_copy = st.columns([1, 4])
-                with st_copy[0]:
-                    st.button(
-                        "📝 复制",
-                        key=f"copy_emp_{battlefield}_{i}",
-                    )
+                render_copy_button(obj["empathy_response"], label="复制共情回应")
 
             with tabs[2]:
                 st.markdown(obj["data_response"])
-                st_copy = st.columns([1, 4])
-                with st_copy[0]:
-                    st.button(
-                        "📝 复制",
-                        key=f"copy_dat_{battlefield}_{i}",
-                    )
+                render_copy_button(obj["data_response"], label="复制数据回应")
 
             # 评分
             st.markdown("---")

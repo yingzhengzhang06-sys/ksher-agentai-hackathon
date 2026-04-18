@@ -11,7 +11,7 @@
 import streamlit as st
 
 from config import BRAND_COLORS, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
-from ui.components.error_handlers import render_error, render_empty_state
+from ui.components.error_handlers import render_error, render_empty_state, render_copy_button
 
 
 # ============================================================
@@ -317,7 +317,7 @@ def render_content_factory():
     col_btn1, _ = st.columns([1, 4])
     with col_btn1:
         generate_clicked = st.button(
-            "✨ 生成内容",
+            "生成内容",
             use_container_width=True,
             type="primary",
         )
@@ -404,13 +404,12 @@ def render_content_factory():
                 )
 
                 # 一键复制按钮
-                st_copy = st.columns([1, 4])
-                with st_copy[0]:
-                    st.code(item["content"], language="text")
+                render_copy_button(item["content"], label="复制文案")
 
-        # 全部复制
-        with st.expander(" 复制全部内容"):
-            all_text = "\n\n" + "=" * 40 + "\n\n".join(
-                f"【{c['title']}】\n{c['content']}" for c in contents
-            )
-            st.code(all_text, language="text")
+        st.markdown("---")
+        st.markdown("##### 全部内容")
+        all_text = "\n\n" + "=" * 40 + "\n\n".join(
+            f"【{c['title']}】\n{c['content']}" for c in contents
+        )
+        st.code(all_text, language="text")
+        render_copy_button(all_text, label="复制全部")

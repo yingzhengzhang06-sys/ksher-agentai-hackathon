@@ -9,6 +9,8 @@ import pandas as pd
 
 from config import BRAND_COLORS
 
+from ui.components.error_handlers import render_copy_button
+
 
 # ============================================================
 # 1. 话术 Tab
@@ -32,14 +34,13 @@ def render_speech_tab(speech_data: dict):
         if paragraph.strip():
             st.markdown(paragraph)
 
-    # 复制按钮（显示原始文本）
-    with st.expander(" 复制全部话术"):
-        all_text = (
-            f"【电梯话术】\n{speech_data.get('elevator_pitch', '')}\n\n"
-            f"【完整话术】\n{speech_data.get('full_talk', '')}\n\n"
-            f"【微信跟进】\n{speech_data.get('wechat_followup', '')}"
-        )
-        st.code(all_text, language="text")
+    # 复制全部话术
+    all_text = (
+        f"【电梯话术】\n{speech_data.get('elevator_pitch', '')}\n\n"
+        f"【完整话术】\n{speech_data.get('full_talk', '')}\n\n"
+        f"【微信跟进】\n{speech_data.get('wechat_followup', '')}"
+    )
+    render_copy_button(all_text, label="复制全部话术")
 
 
 # ============================================================
@@ -133,12 +134,11 @@ def render_proposal_tab(proposal_data: dict):
             st.markdown(content)
 
     # 整体复制
-    with st.expander(" 复制完整方案"):
-        full_text = "\n\n".join(
-            f"【{title}】\n{proposal_data.get(key, '')}"
-            for title, key in sections
-        )
-        st.code(full_text, language="text")
+    full_text = "\n\n".join(
+        f"【{title}】\n{proposal_data.get(key, '')}"
+        for title, key in sections
+    )
+    render_copy_button(full_text, label="复制完整方案")
 
 
 # ============================================================

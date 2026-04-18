@@ -11,7 +11,7 @@
 import streamlit as st
 
 from config import BRAND_COLORS, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
-from ui.components.error_handlers import render_error, render_empty_state
+from ui.components.error_handlers import render_error, render_empty_state, render_copy_button
 
 
 # ============================================================
@@ -319,6 +319,7 @@ def _render_poster_tab():
             f"建议：{poster['tips']}"
         )
         st.code(full_copy, language="text")
+        render_copy_button(full_copy, label="复制海报文案")
 
 
 def _render_ppt_tab():
@@ -367,10 +368,12 @@ def _render_ppt_tab():
                 st.markdown(f"**备注**：{slide['notes']}")
 
         # 导出全部
-        with st.expander(" 复制完整PPT大纲"):
-            full_text = f"# {ppt['title']}\n\n{ppt['subtitle']}\n\n"
-            for slide in ppt["slides"]:
-                full_text += f"## 第{slide['slide_num']}页：{slide['title']}\n\n"
-                full_text += f"{slide['content']}\n\n"
-                full_text += f"【备注】{slide['notes']}\n\n"
-            st.code(full_text, language="markdown")
+        st.markdown("---")
+        st.markdown("##### 完整PPT大纲")
+        full_text = f"# {ppt['title']}\n\n{ppt['subtitle']}\n\n"
+        for slide in ppt["slides"]:
+            full_text += f"## 第{slide['slide_num']}页：{slide['title']}\n\n"
+            full_text += f"{slide['content']}\n\n"
+            full_text += f"【备注】{slide['notes']}\n\n"
+        st.code(full_text, language="markdown")
+        render_copy_button(full_text, label="复制PPT大纲")

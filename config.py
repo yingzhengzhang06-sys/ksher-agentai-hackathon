@@ -67,7 +67,7 @@ EXTERNAL_KNOWLEDGE_SOURCES = [
 # ==========================================
 STREAMLIT_THEME = os.getenv("STREAMLIT_THEME", "dark")
 PAGE_TITLE = "Ksher AgentAI 智能工作台"
-PAGE_ICON = "⚔️"
+PAGE_ICON = ""
 
 # ==========================================
 # 品牌色（从 assets/brand_colors.json 加载）

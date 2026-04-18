@@ -109,7 +109,7 @@ class LLMClient:
         return self._clients[model_key]
 
     def _is_high_risk_error(self, error: Exception) -> bool:
-        """判断是否为安全过滤器拦截的高风险错误"""
+        """判断是否为安全过滤器拦截的高风险错误（AUP/Content Policy）"""
         error_str = str(error).lower()
         return any(kw in error_str for kw in [
             "high risk",
@@ -117,6 +117,11 @@ class LLMClient:
             "safety",
             "policy",
             "rejected",
+            "usage policy",
+            "unable to respond",
+            "violate",
+            "inappropriate",
+            "blocked",
         ])
 
     def _is_quota_error(self, error: Exception) -> bool:
@@ -249,8 +254,17 @@ class LLMClient:
                 raise
 
         except Exception as e:
-            # 兜底错误处理
-            if self._is_quota_error(e):
+            # 兜底错误处理：AUP/安全过滤可能以普通 Exception 抛出
+            if self._is_high_risk_error(e):
+                # 安全过滤拦截 → 降级到 Kimi（与 APIError 分支一致）
+                fallback = FALLBACK_MAP.get(model_key)
+                if fallback:
+                    print(f"[WARN] {model_key} 安全过滤拦截（Exception），降级到 {fallback}")
+                    safe_temp = 1.0 if fallback == "kimi" else temperature
+                    yield from self._call_model(fallback, system, user_msg, safe_temp)
+                else:
+                    yield f"\n[ERROR] {model_key} 请求被安全过滤器拦截，且无可用备用模型。"
+            elif self._is_quota_error(e):
                 yield f"\n[ERROR] API 额度不足：请检查账户余额或联系管理员。"
             else:
                 yield f"\n[ERROR] LLM 调用失败：{str(e)[:200]}"

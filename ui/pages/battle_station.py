@@ -445,8 +445,8 @@ def _generate_real_battle_pack(context: dict) -> dict:
 def render_battle_station():
     """渲染一键备战页面"""
     # ---- 页面标题 ----
- st.title("️ 一键备战")
- st.markdown(
+    st.title("一键备战")
+    st.markdown(
         f"""
         <span style='color:{BRAND_COLORS["text_secondary"]};font-size:0.95rem;'>
             输入客户画像，AI 自动生成完整作战包：话术 + 成本对比 + 方案 + 异议应对
@@ -454,11 +454,11 @@ def render_battle_station():
         """,
         unsafe_allow_html=True,
     )
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 模式指示 ----
     if _is_mock_mode():
- st.markdown(
+        st.markdown(
             f"""
             <div style='
                 display: inline-flex;
@@ -479,7 +479,7 @@ def render_battle_station():
             unsafe_allow_html=True,
         )
     else:
- st.markdown(
+        st.markdown(
             f"""
             <div style='
                 display: inline-flex;
@@ -506,18 +506,18 @@ def render_battle_station():
     # 更新 session_state
     st.session_state.customer_context.update(context)
 
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 生成按钮 ----
     col_btn1, col_btn2, _ = st.columns([1, 1, 3])
     with col_btn1:
- generate_clicked = st.button(
+        generate_clicked = st.button(
             "🚀 生成作战包",
             use_container_width=True,
             type="primary",
         )
     with col_btn2:
- clear_clicked = st.button(
+        clear_clicked = st.button(
             "🗑️ 清空",
             use_container_width=True,
         )
@@ -540,7 +540,7 @@ def render_battle_station():
             render_error("请输入客户公司名", "客户公司名是生成作战包的必填项。")
             return
 
- with st.spinner(" AI 正在生成作战包，请稍候..."):
+        with st.spinner("AI 正在生成作战包，请稍候..."):
             if _is_mock_mode():
                 # BattleRouter 未就绪 → 回退到 Mock 数据
                 battle_pack = _generate_mock_battle_pack(context)
@@ -557,13 +557,13 @@ def render_battle_station():
                     battle_pack = _generate_mock_battle_pack(context)
             st.session_state.battle_pack = battle_pack
 
- st.success(" 作战包生成完成！")
+        st.success("作战包生成完成！")
         st.balloons()
 
     # ---- 展示作战包 ----
     battle_pack = st.session_state.get("battle_pack")
     if battle_pack:
- st.markdown("---")
+        st.markdown("---")
 
         # 战场类型标签
         bf_type = st.session_state.customer_context.get("battlefield", "increment")
@@ -584,7 +584,7 @@ def render_battle_station():
         else:
             _time_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
- st.markdown(
+        st.markdown(
             f"""
             <div style='
                 display: flex;

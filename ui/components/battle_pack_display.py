@@ -15,25 +15,25 @@ from config import BRAND_COLORS
 # ============================================================
 def render_speech_tab(speech_data: dict):
     """渲染话术 Tab"""
- st.markdown("#### 电梯话术（30秒）")
- st.info(speech_data.get("elevator_pitch",""))
+    st.markdown("####  电梯话术（30秒）")
+    st.info(speech_data.get("elevator_pitch", ""))
 
- st.markdown("---")
- st.markdown("#### 完整讲解话术（3分钟）")
+    st.markdown("---")
+    st.markdown("####  完整讲解话术（3分钟）")
     full_talk = speech_data.get("full_talk", "")
     for paragraph in full_talk.split("\n\n"):
         if paragraph.strip():
- st.markdown(paragraph)
+            st.markdown(paragraph)
 
- st.markdown("---")
- st.markdown("#### 微信跟进话术")
+    st.markdown("---")
+    st.markdown("####  微信跟进话术")
     wechat = speech_data.get("wechat_followup", "")
     for paragraph in wechat.split("\n\n"):
         if paragraph.strip():
- st.markdown(paragraph)
+            st.markdown(paragraph)
 
     # 复制按钮（显示原始文本）
- with st.expander(" 复制全部话术"):
+    with st.expander("📋 复制全部话术"):
         all_text = (
             f"【电梯话术】\n{speech_data.get('elevator_pitch', '')}\n\n"
             f"【完整话术】\n{speech_data.get('full_talk', '')}\n\n"
@@ -52,28 +52,28 @@ def render_cost_tab(cost_data: dict, context: dict):
     # 顶部关键指标
     col1, col2, col3 = st.columns(3)
     with col1:
- st.metric(
+        st.metric(
             "当前渠道年成本",
             f"¥{comparison.get('current', {}).get('total', 0):,.1f}万",
         )
     with col2:
- st.metric(
+        st.metric(
             "Ksher 年成本",
             f"¥{comparison.get('ksher', {}).get('total', 0):,.1f}万",
         )
     with col3:
         saving = cost_data.get("annual_saving", 0)
- st.metric(
+        st.metric(
             "预计年节省",
             f"¥{saving:,.1f}万",
             delta=f"-{saving / max(comparison.get('current', {}).get('total', 1), 0.001) * 100:.0f}%",
             delta_color="inverse",
         )
 
- st.markdown("---")
+    st.markdown("---")
 
     # 对比表格
- st.markdown("#### 成本细项对比")
+    st.markdown("####  成本细项对比")
     table_data = []
     categories = ["手续费", "汇损", "时间成本", "管理成本", "合规成本", "总计"]
     ksher_vals = comparison.get("ksher", {})
@@ -104,11 +104,11 @@ def render_cost_tab(cost_data: dict, context: dict):
         },
     )
 
- st.markdown("---")
+    st.markdown("---")
 
     # AI 解读
- st.markdown("#### AI 成本解读")
- st.markdown(cost_data.get("summary",""))
+    st.markdown("####  AI 成本解读")
+    st.markdown(cost_data.get("summary", ""))
 
 
 # ============================================================
@@ -128,12 +128,12 @@ def render_proposal_tab(proposal_data: dict):
     ]
 
     for title, key in sections:
- with st.expander(title, expanded=True):
+        with st.expander(title, expanded=True):
             content = proposal_data.get(key, "")
- st.markdown(content)
+            st.markdown(content)
 
     # 整体复制
- with st.expander(" 复制完整方案"):
+    with st.expander("📋 复制完整方案"):
         full_text = "\n\n".join(
             f"【{title}】\n{proposal_data.get(key, '')}"
             for title, key in sections
@@ -146,25 +146,25 @@ def render_proposal_tab(proposal_data: dict):
 # ============================================================
 def render_objection_tab(objection_data: dict):
     """渲染异议 Tab"""
- st.markdown("#### Top 异议应对")
+    st.markdown("####  Top 异议应对")
 
     objections = objection_data.get("top_objections", [])
     for i, obj in enumerate(objections, 1):
- with st.expander(f"{i}. {obj.get('objection','')}", expanded=i == 1):
+        with st.expander(f"{i}. {obj.get('objection', '')}", expanded=i == 1):
             col1, col2 = st.columns(2)
             with col1:
- st.markdown("** 直接回应**")
- st.markdown(obj.get("direct_response",""))
+                st.markdown("** 直接回应**")
+                st.markdown(obj.get("direct_response", ""))
             with col2:
- st.markdown("** 共情回应**")
- st.markdown(obj.get("empathy_response",""))
+                st.markdown("**🤝 共情回应**")
+                st.markdown(obj.get("empathy_response", ""))
 
- st.markdown("** 数据回应**")
- st.markdown(obj.get("data_response",""))
+            st.markdown("** 数据回应**")
+            st.markdown(obj.get("data_response", ""))
 
- st.markdown("---")
- st.markdown("#### 战场应对策略")
- st.markdown(objection_data.get("battlefield_tips",""))
+    st.markdown("---")
+    st.markdown("####  战场应对策略")
+    st.markdown(objection_data.get("battlefield_tips", ""))
 
 
 # ============================================================
@@ -178,7 +178,7 @@ def render_battle_pack(battle_pack: dict, context: dict):
         battle_pack: generate_battle_pack() 的返回结果
         context: 客户画像上下文
     """
- tab_speech, tab_cost, tab_proposal, tab_objection = st.tabs([
+    tab_speech, tab_cost, tab_proposal, tab_objection = st.tabs([
         "🎤 话术",
         "📊 成本",
         "📋 方案",

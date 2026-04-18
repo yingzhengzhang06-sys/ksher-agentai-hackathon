@@ -38,7 +38,7 @@ def render_customer_input_form() -> dict:
                 "battlefield": str,     # "increment" | "stock" | "education"
             }
     """
- st.subheader(" 客户画像录入")
+    st.subheader(" 客户画像录入")
 
     with st.container():
         # ---- 第1行：公司 + 行业 ----
@@ -96,7 +96,7 @@ def render_customer_input_form() -> dict:
         bf_proposal = battlefield_info.get("proposal_focus", "")
         bf_objection = battlefield_info.get("objection_focus", "")
 
- st.markdown(
+        st.markdown(
             f"""
             <div style='
                 background: rgba(232, 62, 76, 0.08);
@@ -151,5 +151,5 @@ def render_customer_input_form_in_expander() -> dict:
     Returns:
         dict: 客户画像
     """
- with st.expander("️ 修改客户信息", expanded=False):
+    with st.expander("✏️ 修改客户信息", expanded=False):
         return render_customer_input_form()

@@ -156,8 +156,8 @@ def _get_all_objections() -> list[dict]:
 # ============================================================
 def render_objection_sim():
     """渲染异议模拟页面"""
- st.title("️ 异议模拟")
- st.markdown(
+    st.title("异议模拟")
+    st.markdown(
         f"""
         <span style='color:{BRAND_COLORS["text_secondary"]};font-size:0.95rem;'>
             模拟客户常见异议，训练3种应对策略：直接回应 / 共情回应 / 数据回应
@@ -165,7 +165,7 @@ def render_objection_sim():
         """,
         unsafe_allow_html=True,
     )
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 模式选择 ----
     col1, col2 = st.columns(2)
@@ -185,7 +185,7 @@ def render_objection_sim():
                 key="obj_bf_select",
             )
 
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 按战场模式 ----
     if sim_mode == "按战场选择":
@@ -205,7 +205,7 @@ def _render_battlefield_mode(battlefield: str):
     bf_info = BATTLEFIELD_TYPES.get(battlefield, {})
     bf_label = bf_info.get("label", battlefield)
 
- st.markdown(
+    st.markdown(
         f"""
         <div style='
             display: inline-flex;
@@ -227,22 +227,22 @@ def _render_battlefield_mode(battlefield: str):
 
     objections = BATTLEFIELD_OBJECTIONS.get(battlefield, [])
     if not objections:
- st.info("该战场暂无预设异议场景。")
+        st.info("该战场暂无预设异议场景。")
         return
 
     for i, obj in enumerate(objections, 1):
- with st.expander(f"异议 {i}：{obj['objection']}", expanded=i == 1):
- st.caption(f" 背景：{obj['context']}")
- st.markdown("---")
+        with st.expander(f"异议 {i}：{obj['objection']}", expanded=i == 1):
+            st.caption(f"背景：{obj['context']}")
+            st.markdown("---")
 
             # 3种回应策略
- tabs = st.tabs([" 直接回应"," 共情回应"," 数据回应"])
+            tabs = st.tabs(["💬 直接回应", "🤝 共情回应", "📊 数据回应"])
 
             with tabs[0]:
- st.markdown(obj["direct_response"])
+                st.markdown(obj["direct_response"])
                 st_copy = st.columns([1, 4])
                 with st_copy[0]:
- st.button(
+                    st.button(
                         "📝 复制",
                         key=f"copy_dir_{battlefield}_{i}",
                         on_click=lambda text=obj["direct_response"]: st.session_state.update(
@@ -251,26 +251,26 @@ def _render_battlefield_mode(battlefield: str):
                     )
 
             with tabs[1]:
- st.markdown(obj["empathy_response"])
+                st.markdown(obj["empathy_response"])
                 st_copy = st.columns([1, 4])
                 with st_copy[0]:
- st.button(
+                    st.button(
                         "📝 复制",
                         key=f"copy_emp_{battlefield}_{i}",
                     )
 
             with tabs[2]:
- st.markdown(obj["data_response"])
+                st.markdown(obj["data_response"])
                 st_copy = st.columns([1, 4])
                 with st_copy[0]:
- st.button(
+                    st.button(
                         "📝 复制",
                         key=f"copy_dat_{battlefield}_{i}",
                     )
 
             # 评分
- st.markdown("---")
- st.markdown("** 自我评估**")
+            st.markdown("---")
+            st.markdown("** 自我评估**")
             cols = st.columns(3)
             with cols[0]:
                 st.slider(
@@ -307,23 +307,23 @@ def _render_all_mode():
 
     filtered = [o for o in all_objs if o.get("battlefield") in bf_filter]
 
- st.markdown(f"共 **{len(filtered)}** 个异议场景")
+    st.markdown(f"共 **{len(filtered)}** 个异议场景")
 
     for obj in filtered:
         bf = obj.get("battlefield", "")
         bf_label = BATTLEFIELD_TYPES.get(bf, {}).get("label", bf)
- with st.expander(f"[{bf_label}] {obj['objection']}"):
- st.markdown(f"**背景**：{obj['context']}")
- st.markdown("---")
- st.markdown(f"**直接回应**：{obj['direct_response'][:100]}...")
- st.markdown(f"**共情回应**：{obj['empathy_response'][:100]}...")
- st.markdown(f"**数据回应**：{obj['data_response'][:100]}...")
+        with st.expander(f"[{bf_label}] {obj['objection']}"):
+            st.markdown(f"**背景**：{obj['context']}")
+            st.markdown("---")
+            st.markdown(f"**直接回应**：{obj['direct_response'][:100]}...")
+            st.markdown(f"**共情回应**：{obj['empathy_response'][:100]}...")
+            st.markdown(f"**数据回应**：{obj['data_response'][:100]}...")
 
 
 def _render_practice_mode():
     """自由练习模式"""
- st.markdown("#### 自由练习")
- st.markdown(
+    st.markdown("####  自由练习")
+    st.markdown(
         "输入你遇到的真实客户异议，AI 会帮你分析并生成3种应对策略。\n\n"
         "（真实模式就绪后启用，当前展示示例）"
     )
@@ -335,12 +335,12 @@ def _render_practice_mode():
         key="obj_practice_input",
     )
 
- if st.button(" AI 分析异议", type="primary", key="obj_analyze_btn"):
+    if st.button("AI 分析异议", type="primary", key="obj_analyze_btn"):
         if not user_objection:
             render_error("请输入客户异议内容", "客户异议内容是生成回复策略的必填项。")
             return
 
- with st.spinner("AI 正在分析异议并生成应对策略..."):
+        with st.spinner("AI 正在分析异议并生成应对策略..."):
             # Mock 分析结果
             st.session_state.obj_practice_result = {
                 "objection": user_objection,
@@ -373,18 +373,18 @@ def _render_practice_mode():
 
     result = st.session_state.get("obj_practice_result")
     if result:
- st.markdown("---")
- st.markdown(f"#### 异议分析：{result['objection'][:50]}...")
+        st.markdown("---")
+        st.markdown(f"####  异议分析：{result['objection'][:50]}...")
 
- st.markdown(f"** 核心洞察**：{result['analysis']}")
- st.markdown("---")
+        st.markdown(f"**🔍 核心洞察**：{result['analysis']}")
+        st.markdown("---")
 
- tabs = st.tabs([" 直接回应"," 共情回应"," 数据回应"," 训练要点"])
+        tabs = st.tabs(["💬 直接回应", "🤝 共情回应", "📊 数据回应", "💡 训练要点"])
         with tabs[0]:
- st.info(result["direct_response"])
+            st.info(result["direct_response"])
         with tabs[1]:
- st.info(result["empathy_response"])
+            st.info(result["empathy_response"])
         with tabs[2]:
- st.info(result["data_response"])
+            st.info(result["data_response"])
         with tabs[3]:
- st.markdown(result["tips"])
+            st.markdown(result["tips"])

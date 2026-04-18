@@ -194,8 +194,8 @@ def _get_mock_answer(question: str) -> dict:
 # ============================================================
 def render_knowledge_qa():
     """渲染知识问答页面"""
- st.title(" 知识问答")
- st.markdown(
+    st.title("知识问答")
+    st.markdown(
         f"""
         <span style='color:{BRAND_COLORS["text_secondary"]};font-size:0.95rem;'>
             实时查询 Ksher 产品知识库，获取带引用来源的答案
@@ -203,10 +203,10 @@ def render_knowledge_qa():
         """,
         unsafe_allow_html=True,
     )
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 快捷问题标签 ----
- st.markdown("#### 常见问题")
+    st.markdown("####  常见问题")
     quick_questions = [
         "泰国收款费率是多少？",
         "Ksher 和 PingPong 有什么区别？",
@@ -218,11 +218,11 @@ def render_knowledge_qa():
     cols = st.columns(len(quick_questions))
     for i, qq in enumerate(quick_questions):
         with cols[i]:
- if st.button(qq, key=f"qq_{i}", use_container_width=True):
+            if st.button(qq, key=f"qq_{i}", use_container_width=True):
                 st.session_state.kq_question = qq
                 st.rerun()
 
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 输入框 ----
     default_q = st.session_state.get("kq_question", "")
@@ -235,7 +235,7 @@ def render_knowledge_qa():
 
     col_btn1, _ = st.columns([1, 4])
     with col_btn1:
- ask_clicked = st.button(
+        ask_clicked = st.button(
             "🔍 查询",
             use_container_width=True,
             type="primary",
@@ -243,7 +243,7 @@ def render_knowledge_qa():
 
     # ---- 展示答案 ----
     if ask_clicked and question:
- with st.spinner(" AI 正在查询知识库..."):
+        with st.spinner("AI 正在查询知识库..."):
             result = _get_mock_answer(question)
             st.session_state.kq_last_answer = result
             st.session_state.kq_last_question = question
@@ -254,20 +254,20 @@ def render_knowledge_qa():
 
     if not last_a:
         render_empty_state(
- icon="",
+            icon="📚",
             title="知识问答",
             description="在上方输入框中输入你的产品问题，例如：「泰国B2B费率是多少？」",
         )
     else:
- st.markdown("---")
- st.markdown(f"#### 问题：{last_q}")
+        st.markdown("---")
+        st.markdown(f"####  问题：{last_q}")
 
         # 置信度标签
         confidence = last_a.get("confidence", "中")
         color_map = {"高": BRAND_COLORS["success"], "中": BRAND_COLORS["warning"], "低": BRAND_COLORS["danger"]}
         conf_color = color_map.get(confidence, BRAND_COLORS["text_secondary"])
 
- st.markdown(
+        st.markdown(
             f"""
             <div style='
                 display: inline-flex;
@@ -291,30 +291,30 @@ def render_knowledge_qa():
         )
 
         # 答案内容
- st.markdown(last_a.get("answer",""))
+        st.markdown(last_a.get("answer", ""))
 
         # 引用来源
         sources = last_a.get("sources", [])
         if sources:
- st.markdown("---")
- st.markdown("** 引用来源**")
+            st.markdown("---")
+            st.markdown("** 引用来源**")
             for src in sources:
- st.markdown(f"- `{src}`")
+                st.markdown(f"- `{src}`")
 
         # 反馈
- st.markdown("---")
+        st.markdown("---")
         feedback_cols = st.columns([1, 1, 3])
         with feedback_cols[0]:
- if st.button(" 有帮助", key="kq_up"):
+            if st.button("有帮助", key="kq_up"):
                 st.toast("感谢反馈！")
         with feedback_cols[1]:
- if st.button(" 需改进", key="kq_down"):
+            if st.button("需改进", key="kq_down"):
                 st.toast("已记录，我们会优化答案。")
 
     # ---- 使用提示 ----
- st.markdown("---")
- with st.expander(" 提问技巧"):
- st.markdown(
+    st.markdown("---")
+    with st.expander("💡 提问技巧"):
+        st.markdown(
             "**支持的问题类型：**\n"
             "- 费率咨询：\"泰国B2B收款费率是多少？\"\n"
             "- 竞品对比：\"Ksher和PingPong有什么区别？\"\n"

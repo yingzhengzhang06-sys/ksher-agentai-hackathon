@@ -92,7 +92,7 @@ def _mock_dashboard_data() -> dict:
 PLOTLY_THEME = {
     "paper_bgcolor": "rgba(0,0,0,0)",
     "plot_bgcolor": "rgba(0,0,0,0)",
-    "font": {"color": "#8a8f99", "family": "Arial, sans-serif"},
+    "font": {"color": "#86868B", "family": "Arial, sans-serif"},
 }
 
 GRID_AXIS = {
@@ -115,11 +115,11 @@ def _render_kpi_cards(summary: dict):
     ]
     for col, label, value, unit in cards:
         with col:
- st.markdown(
+            st.markdown(
                 f"""
                 <div style='
                     background: {BRAND_COLORS["surface"]};
-                    border: 1px solid #e5e6ea;
+                    border: 1px solid #E8E8ED;
                     border-radius: 0.75rem;
                     padding: 1.2rem 1rem;
                     text-align: center;
@@ -278,7 +278,7 @@ def _render_weekly_trend(trend: list):
     fig = go.Figure()
 
     traces = [
-        ("访客数", visits, "#8a8f99"),
+        ("访客数", visits, "#86868B"),
         ("生成数", generations, "#E83E4C"),
         ("转化数", conversions, "#00C9A7"),
     ]
@@ -299,7 +299,7 @@ def _render_weekly_trend(trend: list):
         title={"text": "周趋势", "font": {"size": 16, "color": "#1d2129"}, "x": 0.02},
         legend={
             "orientation": "h", "yanchor": "bottom", "y": 1.02,
-            "xanchor": "right", "x": 1, "font": {"color": "#8a8f99"},
+            "xanchor": "right", "x": 1, "font": {"color": "#86868B"},
         },
         margin={"t": 80, "b": 40, "l": 50, "r": 40},
         height=300,
@@ -314,8 +314,8 @@ def _render_weekly_trend(trend: list):
 # ============================================================
 def render_dashboard():
     """渲染仪表盘页面"""
- st.title(" 仪表盘")
- st.markdown(
+    st.title("仪表盘")
+    st.markdown(
         f"""
         <span style='color:{BRAND_COLORS["text_secondary"]};font-size:0.95rem;'>
             销售数据可视化与作战效果追踪
@@ -323,7 +323,7 @@ def render_dashboard():
         """,
         unsafe_allow_html=True,
     )
- st.markdown("---")
+    st.markdown("---")
 
     # 加载数据
     data = _load_dashboard_data()
@@ -331,7 +331,7 @@ def render_dashboard():
     # ---- 关键指标卡片 ----
     _render_kpi_cards(data["summary"])
 
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 第1行：漏斗 + 战场统计 ----
     col_left, col_right = st.columns([1, 1])
@@ -340,7 +340,7 @@ def render_dashboard():
     with col_right:
         _render_battlefield_chart(data["battlefield_stats"])
 
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 第2行：Agent 使用 + 周趋势 ----
     col_left2, col_right2 = st.columns([1, 1])
@@ -349,10 +349,10 @@ def render_dashboard():
     with col_right2:
         _render_weekly_trend(data["weekly_trend"])
 
- st.markdown("---")
+    st.markdown("---")
 
     # ---- 底部信息 ----
     updated = data.get("generated_at", "")
     period = data.get("period", "")
     source = "mock_dashboard.json" if os.path.exists(DASHBOARD_DATA_PATH) else "内置 Mock"
- st.caption(f"统计周期：{period} · 数据更新时间：{updated[:16]} · 数据来源：{source}")
+    st.caption(f"统计周期：{period} · 数据更新时间：{updated[:16]} · 数据来源：{source}")

@@ -15,7 +15,48 @@ from datetime import datetime
 
 import streamlit as st
 
-from config import BRAND_COLORS, BATTLEFIELD_TYPES, INDUSTRY_OPTIONS, COUNTRY_OPTIONS, RATES_CONFIG
+from config import BRAND_COLORS, BATTLEFIELD_TYPES, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
+
+# 兼容旧版 config.py（Streamlit Cloud 缓存问题）
+try:
+    from config import RATES_CONFIG
+except ImportError:
+    # 默认费率配置（与 config.py 中 RATES_CONFIG 保持一致）
+    RATES_CONFIG = {
+        "ksher": {"b2b_fee_rate": 0.004, "b2c_fee_rate": 0.008, "fx_spread": 0.002},
+        "channels": {
+            "银行电汇": {
+                "fee_rate": 0.0015, "fixed_cost_annual": 1.5, "fx_spread": 0.008,
+                "time_cost_rate": 0.001, "mgmt_cost_rate": 0.0005,
+                "rate_label": "约 1.0%", "notes": "",
+            },
+            "竞品综合": {
+                "fee_rate": 0.004, "fixed_cost_annual": 0.0, "fx_spread": 0.003,
+                "time_cost_rate": 0.0005, "mgmt_cost_rate": 0.0,
+                "rate_label": "约 0.7%", "notes": "",
+            },
+            "默认": {
+                "fee_rate": 0.003, "fixed_cost_annual": 0.5, "fx_spread": 0.005,
+                "time_cost_rate": 0.001, "mgmt_cost_rate": 0.0005,
+                "rate_label": "约 0.9%", "notes": "",
+            },
+        },
+        "cost_labels": {
+            "银行电汇": {
+                "痛点标题": "当前银行电汇的核心痛点不是\"费率\"，而是隐性成本",
+                "痛点1": "汇率损失最大：银行结汇汇率通常比市场中间价高 0.8-1.5%",
+                "痛点2": "固定费用蚕食利润：每笔 SWIFT 电报费 ¥150-300 + 中间行扣费 $15-50",
+                "痛点3": "到账慢=资金贵：3-5 个工作日到账，资金占用年化成本",
+                "切换优势": "本地牌照直接清算，综合成本降至 0.6%",
+            },
+            "竞品综合": {
+                "痛点标题": "费率已较低，但仍有优化空间",
+                "痛点1": "汇率点差：结汇汇率点差约 0.3-0.5%",
+                "痛点2": "中转成本：无东南亚本地牌照，资金需经第三方中转",
+                "切换优势": "泰国/马来/菲律宾/印尼 本地支付牌照，直接清算",
+            },
+        },
+    }
 from ui.components.customer_input_form import render_customer_input_form
 from ui.components.battle_pack_display import render_battle_pack
 from ui.components.error_handlers import (

@@ -11,8 +11,14 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import (
     KNOWLEDGE_DIR, BATTLEFIELD_TYPES, INDUSTRY_OPTIONS,
-    COUNTRY_OPTIONS, EXTERNAL_KNOWLEDGE_SOURCES,
+    COUNTRY_OPTIONS,
 )
+
+# 兼容旧版 config.py（Streamlit Cloud 缓存问题）
+try:
+    from config import EXTERNAL_KNOWLEDGE_SOURCES
+except ImportError:
+    EXTERNAL_KNOWLEDGE_SOURCES = []
 
 
 class KnowledgeLoader:

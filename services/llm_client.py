@@ -6,11 +6,18 @@
 - 支持流式输出（stream_text）和同步调用（call_sync）
 - 错误处理：API 失败时自动降级到 fallback 模型
 - 安全过滤处理：Claude high risk 错误时自动切换到 Kimi
+- 网络超时重试：最多3次，带指数退避
+- 额度不足/服务不可用提示
 """
 import os
+import time
 from typing import Generator
 import anthropic
 from openai import OpenAI, APIError
+from dotenv import load_dotenv
+
+# 强制重新加载 .env（确保获取最新的 API Key）
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'), override=True)
 
 # 模型配置
 MODEL_CONFIG = {
@@ -45,6 +52,11 @@ FALLBACK_MAP = {
     "sonnet": "kimi",   # Claude 出问题 → Kimi
     "kimi": None,       # Kimi 出问题 → 无备用，直接报错
 }
+
+# 重试配置
+MAX_RETRIES = 3
+RETRY_BASE_DELAY = 1.0  # 基础退避秒数
+RETRY_MAX_DELAY = 10.0  # 最大退避秒数
 
 
 class LLMClient:
@@ -89,28 +101,96 @@ class LLMClient:
             "rejected",
         ])
 
+    def _is_quota_error(self, error: Exception) -> bool:
+        """判断是否为 API 额度不足错误"""
+        error_str = str(error).lower()
+        return any(kw in error_str for kw in [
+            "quota exceeded",
+            "rate limit",
+            "insufficient_quota",
+            "billing",
+            "usage limit",
+            "insufficient balance",
+        ])
+
+    def _is_unavailable_error(self, error: Exception) -> bool:
+        """判断是否为服务不可用错误"""
+        error_str = str(error).lower()
+        return any(kw in error_str for kw in [
+            "service unavailable",
+            "bad gateway",
+            "gateway timeout",
+            "server error",
+            "internal error",
+            "connection error",
+            "timeout",
+        ])
+
+    def _should_retry(self, error: Exception) -> bool:
+        """判断错误是否可重试"""
+        error_str = str(error).lower()
+        retry_keywords = [
+            "timeout",
+            "connection",
+            "rate limit",
+            "service unavailable",
+            "bad gateway",
+            "gateway timeout",
+            "internal error",
+            "temporarily",
+        ]
+        return any(kw in error_str for kw in retry_keywords)
+
     def _call_model(self, model_key: str, system: str, user_msg: str,
                     temperature: float) -> Generator[str, None, None]:
-        """底层模型调用，处理 OpenAI 兼容格式"""
+        """底层模型调用，处理 OpenAI 兼容格式（带重试）"""
         config = MODEL_CONFIG[model_key]
-        client = self._get_client(model_key)
 
         # Kimi-k2.5 只支持 temperature=1.0
         if model_key == "kimi" and config["model"] == "kimi-k2.5":
             temperature = 1.0
 
-        response = client.chat.completions.create(
-            model=config["model"],
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user_msg}
-            ],
-            temperature=temperature,
-            stream=True
-        )
-        for chunk in response:
-            if chunk.choices and chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
+        last_error = None
+        for attempt in range(MAX_RETRIES):
+            try:
+                client = self._get_client(model_key)
+                response = client.chat.completions.create(
+                    model=config["model"],
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user_msg}
+                    ],
+                    temperature=temperature,
+                    stream=True
+                )
+                for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+                return  # 成功完成
+
+            except Exception as e:
+                last_error = e
+
+                # 额度不足 → 不重试，直接提示
+                if self._is_quota_error(e):
+                    yield f"\n[ERROR] API 额度不足：{model_key} 请求被拒绝。请联系管理员充值或检查账单。"
+                    return
+
+                # 不可重试的错误 → 直接抛出
+                if not self._should_retry(e):
+                    raise
+
+                # 可重试但已用完重试次数
+                if attempt >= MAX_RETRIES - 1:
+                    break
+
+                # 指数退避
+                delay = min(RETRY_BASE_DELAY * (2 ** attempt), RETRY_MAX_DELAY)
+                print(f"[WARN] {model_key} 请求失败（{attempt + 1}/{MAX_RETRIES}）：{e}，{delay:.1f}s 后重试...")
+                time.sleep(delay)
+
+        # 重试耗尽 → 抛出最后错误
+        raise last_error
 
     def stream_text(self, agent_name: str, system: str, user_msg: str,
                     temperature: float = 0.7) -> Generator[str, None, None]:
@@ -119,7 +199,9 @@ class LLMClient:
 
         错误处理：
         - Claude high risk → 自动降级到 Kimi
-        - 其他错误 → 抛出异常
+        - 网络超时 → 最多3次重试（指数退避）
+        - API额度不足 → 提示用户充值
+        - 服务不可用 → 重试后降级
         """
         model_key = AGENT_MODEL_MAP.get(agent_name, "kimi")
 
@@ -132,13 +214,28 @@ class LLMClient:
                 fallback = FALLBACK_MAP.get(model_key)
                 if fallback:
                     print(f"[WARN] {model_key} 安全过滤拦截，降级到 {fallback}")
-                    # 调整 temperature（Kimi 只允许 1.0）
                     safe_temp = 1.0 if fallback == "kimi" else temperature
                     yield from self._call_model(fallback, system, user_msg, safe_temp)
                 else:
                     raise
+            elif self._is_unavailable_error(e):
+                # 服务不可用 → 尝试降级
+                fallback = FALLBACK_MAP.get(model_key)
+                if fallback:
+                    print(f"[WARN] {model_key} 服务不可用，降级到 {fallback}")
+                    safe_temp = 1.0 if fallback == "kimi" else temperature
+                    yield from self._call_model(fallback, system, user_msg, safe_temp)
+                else:
+                    yield f"\n[ERROR] {model_key} 服务暂时不可用，请稍后重试。"
             else:
                 raise
+
+        except Exception as e:
+            # 兜底错误处理
+            if self._is_quota_error(e):
+                yield f"\n[ERROR] API 额度不足：请检查账户余额或联系管理员。"
+            else:
+                yield f"\n[ERROR] LLM 调用失败：{str(e)[:200]}"
 
     def call_sync(self, agent_name: str, system: str, user_msg: str,
                   temperature: float = 0.7) -> str:

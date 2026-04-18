@@ -128,9 +128,9 @@ class SpeechAgent(BaseAgent):
 
         # 尝试匹配各个部分
         patterns = {
-            "elevator_pitch": r"(?:30秒电梯话术|电梯话术| Elevator Pitch).*?[\n:：](.+?)(?=\n##|\n### |\Z)",
-            "full_talk": r"(?:3分钟完整讲解|完整讲解|Full Talk).*?[\n:：](.+?)(?=\n##|\n### |\Z)",
-            "wechat_followup": r"(?:微信跟进话术|跟进话术|WeChat).*?[\n:：](.+?)(?=\n##|\n### |\Z)",
+            "elevator_pitch": r"(?:30秒电梯话术|电梯话术|Elevator Pitch| elevator_pitch).*?[\n:：](.+?)(?=\n##|\n### |\n\{\{|\Z)",
+            "full_talk": r"(?:3分钟完整讲解|完整讲解|Full Talk|full_talk).*?[\n:：](.+?)(?=\n##|\n### |\n\{\{|\Z)",
+            "wechat_followup": r"(?:微信跟进话术|微信话术|跟进话术|WeChat|wechat_followup|首次添加|后续跟进|添加好友).*?[\n:：](.+?)(?=\n##|\n### |\n\{\{|\Z)",
         }
 
         for key, pattern in patterns.items():

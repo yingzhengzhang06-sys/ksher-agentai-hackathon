@@ -1,0 +1,77 @@
+{
+  "generated_at": "2026-04-18T12:00:00",
+  "period": "2026-04-01 ~ 2026-04-18",
+  "summary": {
+    "total_customers": 128,
+    "battle_packs_generated": 342,
+    "total_savings_calculated": 2845000,
+    "avg_saving_per_customer": 22227
+  },
+  "conversion_funnel": {
+    "stages": [
+      {"stage": "访客访问", "count": 2156, "conversion_rate": 100.0},
+      {"stage": "填写客户画像", "count": 856, "conversion_rate": 39.7},
+      {"stage": "生成作战包", "count": 342, "conversion_rate": 40.0},
+      {"stage": "导出方案", "count": 198, "conversion_rate": 57.9},
+      {"stage": "分享给客户", "count": 128, "conversion_rate": 64.6}
+    ],
+    "overall_conversion": 5.9
+  },
+  "battlefield_stats": {
+    "increment": {
+      "label": "增量战场（从银行抢客户）",
+      "count": 186,
+      "percentage": 54.4,
+      "avg_saving": 35600,
+      "top_channels": ["银行电汇", "招商银行", "工商银行"]
+    },
+    "stock": {
+      "label": "存量战场（从竞品抢客户）",
+      "count": 112,
+      "percentage": 32.7,
+      "avg_saving": 12800,
+      "top_channels": ["PingPong", "万里汇", "XTransfer"]
+    },
+    "education": {
+      "label": "教育战场（新客户/未选定渠道）",
+      "count": 44,
+      "percentage": 12.9,
+      "avg_saving": 8200,
+      "top_channels": ["未选定", "暂无"]
+    }
+  },
+  "agent_usage": {
+    "speech": {"calls": 342, "avg_time_ms": 52300, "success_rate": 98.2},
+    "cost": {"calls": 342, "avg_time_ms": 18200, "success_rate": 100.0},
+    "proposal": {"calls": 338, "avg_time_ms": 67800, "success_rate": 96.5},
+    "objection": {"calls": 342, "avg_time_ms": 54800, "success_rate": 98.8},
+    "content": {"calls": 89, "avg_time_ms": 61200, "success_rate": 97.8},
+    "knowledge": {"calls": 156, "avg_time_ms": 24500, "success_rate": 99.4},
+    "design": {"calls": 67, "avg_time_ms": 42300, "success_rate": 98.5}
+  },
+  "industry_breakdown": {
+    "b2c": {"count": 198, "percentage": 57.9, "label": "跨境电商（B2C）"},
+    "b2b": {"count": 98, "percentage": 28.7, "label": "跨境货贸（B2B）"},
+    "service": {"count": 46, "percentage": 13.4, "label": "服务贸易"}
+  },
+  "country_breakdown": {
+    "thailand": {"count": 128, "percentage": 37.4, "label": "泰国（THB）"},
+    "malaysia": {"count": 86, "percentage": 25.1, "label": "马来西亚（MYR）"},
+    "philippines": {"count": 56, "percentage": 16.4, "label": "菲律宾（PHP）"},
+    "indonesia": {"count": 42, "percentage": 12.3, "label": "印尼（IDR）"},
+    "vietnam": {"count": 30, "percentage": 8.8, "label": "越南（VND）"}
+  },
+  "top_pain_points": [
+    {"pain": "手续费高", "count": 198, "percentage": 57.9},
+    {"pain": "到账慢", "count": 156, "percentage": 45.6},
+    {"pain": "汇率损失大", "count": 124, "percentage": 36.3},
+    {"pain": "合规担忧", "count": 98, "percentage": 28.7},
+    {"pain": "多平台管理麻烦", "count": 76, "percentage": 22.2}
+  ],
+  "weekly_trend": [
+    {"week": "W1", "visits": 420, "generations": 56, "conversions": 18},
+    {"week": "W2", "visits": 512, "generations": 78, "conversions": 26},
+    {"week": "W3", "visits": 612, "generations": 102, "conversions": 38},
+    {"week": "W4", "visits": 612, "generations": 106, "conversions": 46}
+  ]
+}

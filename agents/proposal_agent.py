@@ -133,13 +133,18 @@ class ProposalAgent(BaseAgent):
             return text
 
         content = match.group(1)
-        # 只修复值内部的引号：前后都是中文或数字的 ASCII 双引号
-        # 字符串边界 " 的前面通常是 : 或 , 或空格，所以不会误伤
-        repaired = re.sub(
-            r'(?<=[\u4e00-\u9fff0-9])"(?=[\u4e00-\u9fff0-9])',
-            r'\\"',
-            content
-        )
+
+        def _fix_line(line: str) -> str:
+            # 匹配每行的 "key": "value" 或 "key": "value",
+            m = re.match(r'^(\s*"[^"]+":\s*")(.*?)"(,?)$', line)
+            if m:
+                prefix, value, comma = m.groups()
+                value = value.replace('"', r'\"')
+                return prefix + value + '"' + (comma or '')
+            return line
+
+        lines = content.split('\n')
+        repaired = '\n'.join(_fix_line(l) for l in lines)
         if repaired != content:
             return text.replace(content, repaired)
         return text

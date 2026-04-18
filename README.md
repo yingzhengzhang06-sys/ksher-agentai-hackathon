@@ -3,7 +3,7 @@
 > **赛道**：赛道1 · 生产关系重构 & 效率提效
 > **Slogan**：一人公司，AI武装 — 一个人 + AI，打赢一个团队的仗
 > **截止日期**：2026年5月13日
-> **当前版本**：V1 Demo（Day 4 完成）
+> **当前版本**：V1 Demo（Day 5 完成）
 
 ---
 
@@ -16,11 +16,11 @@
 | Day 2 核心引擎 | 2026-04-17 | ✅ 完成 | 100% |
 | Day 3 编排集成 | 2026-04-18 | ✅ 完成 | 100% |
 | Day 4 稳定性 | 2026-04-18 | ✅ 完成 | 100% |
-| Day 5 联调部署 | 2026-04-18 | 🔄 进行中 | 90% |
-| Day 6 路演准备 | 待定 | ⬜ 待开始 | 0% |
+| Day 5 联调部署 | 2026-04-18 | ✅ 完成 | 100% |
+| Day 6 路演准备 | 2026-04-19 | ✅ 完成 | 100% |
 | Day 7 提交 | 2026-04-22 | ⬜ 待开始 | 0% |
 
-**整体进度**：95% | **核心功能**：一键备战已跑通真实LLM，6页面全部可用，7个Agent全部实现，后端15模块全部通过部署前检查
+**整体进度**：100%（Day 0-5）| **核心功能**：一键备战已跑通真实LLM，6页面全部可用，7个Agent全部实现，三终端代码全部通过检查
 
 ---
 
@@ -98,7 +98,7 @@ streamlit run app.py
 │   ├── speech_prompt.py            # 话术Agent Prompt（3战场适配）✅
 │   ├── cost_prompt.py              # 成本Agent Prompt（5项成本规则）✅
 │   └── knowledge_fusion_rules.py   # 三层知识融合规则 ✅
-├── knowledge/                      # 知识库（Markdown，32个文档）
+├── knowledge/                      # 知识库（Markdown，32个文档 + 外部知识库动态引用）
 │   ├── index.json                  # 知识库索引 v1.2（33文档/38标签/Agent映射）
 │   ├── base/                       # 基础知识
 │   ├── b2c/                        # B2C各国
@@ -108,13 +108,16 @@ streamlit run app.py
 │   ├── competitors/                # 竞品分析
 │   ├── operations/                 # 操作指引+FAQ
 │   ├── strategy/                   # 行业方案+优势策略
-│   └── fee_structure.json          # 费率参数
+│   ├── demo_scenarios/             # 演示场景知识包（双战场+Q&A）
+│   ├── fee_structure.json          # 费率参数
+│   └── [外部知识库]                # 动态引用龙虾知识库（自动匹配加载，无需手动同步）
 ├── services/                       # 服务层
 │   ├── llm_client.py               # 多模型统一客户端（3次重试+指数退避+降级）✅
-│   ├── knowledge_loader.py         # 知识库加载（按Agent选择性注入）✅
+│   ├── knowledge_loader.py         # 知识库加载（按Agent选择性注入+外部知识库动态引用）✅
 │   ├── cost_calculator.py          # 成本计算引擎（纯Python，5项精确计算）✅
 │   ├── app_initializer.py          # App启动初始化（Router+Agent注册）✅
-│   └── result_cache.py             # Agent结果缓存（5min TTL+相似画像匹配）✅
+│   ├── result_cache.py             # Agent结果缓存（5min TTL+相似画像匹配）✅
+│   └── benchmark.py                # Agent性能基准统计（耗时/缓存命中率/成功率）✅
 ├── ui/                             # UI组件
 │   ├── pages/                      # 各页面
 │   │   ├── battle_station.py       # 一键备战（Mock+真实双模式）✅
@@ -193,11 +196,23 @@ streamlit run app.py
 
 详见 [DEVLOG.md](./DEVLOG.md)
 
-### 最近更新（Day 5）
-- 后端15个模块全部通过部署前检查（语法/导入/逻辑/测试）
+### 最近更新（Day 6）
+- **Apple 风格 UI 全面升级** — 参照苹果官网设计语言：白底极简/大量留白/药丸按钮/无阴影卡片
+- 品牌色彩系统浅色化：`#0F0F1A`→`#FFFFFF`，`#1E1E2F`→`#F5F5F7`（Apple Gray）
+- 按钮药丸化：`border-radius: 9999px`，去掉阴影和位移动效
+- 输入框浅色化：白底+浅灰边框+品牌色聚焦 glow
+- 侧边栏 Apple Gray 化：`#F5F5F7` 背景+深灰文字
+- Plotly 图表适配浅色：文字 `#FFFFFF`→`#1D1D1F`
+- 新增设计规范文档：`docs/apple_design_guide.md`
+
+### Day 5 已完成
+- **三终端全部完成** — 后端16模块/前端11文件/知识库37文件全部通过检查
+- 后端16个模块全部通过部署前检查（语法/导入/逻辑/测试），代码质量优秀
+- 前端11个文件全部通过检查（语法/Secrets/Session State/错误处理），无安全隐患
 - 知识库37个文件全部纳入Git跟踪，index.json v1.2验证通过
+- **外部知识库动态引用** — 支持自动加载龙虾知识库（按Agent类型+行业/国家上下文智能匹配，无需手动同步）
 - 演示场景知识包最终校验通过（场景A/B + Q&A 13问）
-- 终端1/2/3全部代码就绪，进入最终部署阶段
+- Streamlit Cloud部署完成，6页面全部在线
 
 ### Day 4 已完成
 - 一键备战端到端跑通：107秒完成4个Agent真实LLM调用

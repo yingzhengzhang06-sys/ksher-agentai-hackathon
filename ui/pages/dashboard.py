@@ -92,7 +92,7 @@ def _mock_dashboard_data() -> dict:
 PLOTLY_THEME = {
     "paper_bgcolor": "rgba(0,0,0,0)",
     "plot_bgcolor": "rgba(0,0,0,0)",
-    "font": {"color": "#B0B0C0", "family": "Arial, sans-serif"},
+    "font": {"color": "#86868B", "family": "Arial, sans-serif"},
 }
 
 GRID_AXIS = {
@@ -278,7 +278,7 @@ def _render_weekly_trend(trend: list):
     fig = go.Figure()
 
     traces = [
-        ("访客数", visits, "#B0B0C0"),
+        ("访客数", visits, "#86868B"),
         ("生成数", generations, "#E83E4C"),
         ("转化数", conversions, "#00C9A7"),
     ]
@@ -299,7 +299,7 @@ def _render_weekly_trend(trend: list):
         title={"text": "周趋势", "font": {"size": 16, "color": "#1D1D1F"}, "x": 0.02},
         legend={
             "orientation": "h", "yanchor": "bottom", "y": 1.02,
-            "xanchor": "right", "x": 1, "font": {"color": "#B0B0C0"},
+            "xanchor": "right", "x": 1, "font": {"color": "#86868B"},
         },
         margin={"t": 80, "b": 40, "l": 50, "r": 40},
         height=300,

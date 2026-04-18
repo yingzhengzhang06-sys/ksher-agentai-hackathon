@@ -51,9 +51,9 @@ def _mock_generate_content(
                     f"这是深圳一家做{country_label}市场的{industry_label}客户原话。\n"
                     f"以前用银行电汇，到账慢、费率不透明、还要人工核对每笔扣款。\n\n"
                     f"切换到 Ksher 后：\n"
-                    f"✅ T+1到账，现金流可预测\n"
-                    f"✅ 费率锁定，不再有\"惊喜\"扣款\n"
-                    f"✅ API自动对账，财务效率翻倍\n\n"
+                    f" T+1到账，现金流可预测\n"
+                    f" 费率锁定，不再有\"惊喜\"扣款\n"
+                    f" API自动对账，财务效率翻倍\n\n"
                     f"你的财务团队还在手动对账吗？"
                 ),
                 "tips": "适合周二/周四下午发布，配图：对账界面前后对比",
@@ -94,8 +94,8 @@ def _mock_generate_content(
                     f"Why {country_label} Cross-Border Payments Are Shifting to Local Rails\n\n"
                     f"After supporting 1,000+ {industry_label} businesses in {country_label}, "
                     f"I see a clear pattern:\n\n"
-                    f"❌ Traditional wire transfer: 3-5 days, opaque fees, unpredictable FX\n"
-                    f"✅ Local payment rails: T+1 settlement, transparent pricing, locked rates\n\n"
+                    f" Traditional wire transfer: 3-5 days, opaque fees, unpredictable FX\n"
+                    f" Local payment rails: T+1 settlement, transparent pricing, locked rates\n\n"
                     f"The math is simple. On ¥1M monthly volume, the difference is ~¥200K/year.\n\n"
                     f"The question isn't whether to switch—it's when.\n\n"
                     f"#CrossBorderPayments #{country_label}Business #Fintech"
@@ -170,9 +170,9 @@ def _mock_generate_content(
                     f"2. 单笔限额调整，大额交易需分批处理\n"
                     f"3. 合规报告频率从季度提升至月度\n\n"
                     f"【Ksher 应对方案】\n"
-                    f"✅ 自动合规审查，减少人工准备材料\n"
-                    f"✅ 智能分批处理，规避限额风险\n"
-                    f"✅ 一键生成合规报告，支持审计需求\n\n"
+                    f" 自动合规审查，减少人工准备材料\n"
+                    f" 智能分批处理，规避限额风险\n"
+                    f" 一键生成合规报告，支持审计需求\n\n"
                     f"附件为政策原文摘要和应对指南。如需详细解读，欢迎预约咨询。\n\n"
                     f"Best regards,\n"
                     f"[您的名字]"
@@ -351,7 +351,7 @@ def render_content_factory():
         )
     elif contents:
         st.markdown("---")
-        st.markdown(f"####  生成的 {scene} 内容")
+        st.markdown(f"#### 生成的 {scene} 内容")
 
         for item in contents:
             with st.container():

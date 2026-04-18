@@ -27,10 +27,10 @@ def _mock_poster_copy(industry: str, country: str, theme: str) -> dict:
             "headline": f"做{country_label}市场，这笔账你算过吗？",
             "subheadline": f"月流水100万，银行每年悄悄吃掉你20万+",
             "body": (
-                f"✅ Ksher {country_label}本地收款：费率0.6%-1.0%\n"
-                f"✅ T+1到账，资金效率翻倍\n"
-                f"✅ 锁汇工具，规避汇率风险\n"
-                f"✅ 本地牌照，合规有保障"
+                f" Ksher {country_label}本地收款：费率0.6%-1.0%\n"
+                f" T+1到账，资金效率翻倍\n"
+                f" 锁汇工具，规避汇率风险\n"
+                f" 本地牌照，合规有保障"
             ),
             "cta": "立即申请免费成本对比分析",
             "color_scheme": "红底白字 + 金色点缀",
@@ -56,10 +56,10 @@ def _mock_poster_copy(industry: str, country: str, theme: str) -> dict:
             "headline": f"{country_label}跨境支付市场变了",
             "subheadline": "2024年电子支付渗透率突破75%，但收款仍存在3大痛点",
             "body": (
-                f"❌ 痛点1：银行链条长，到账慢\n"
-                f"❌ 痛点2：中间行扣费不透明\n"
-                f"❌ 痛点3：汇率波动风险大\n\n"
-                f"✅ Ksher 解决方案：\n"
+                f" 痛点1：银行链条长，到账慢\n"
+                f" 痛点2：中间行扣费不透明\n"
+                f" 痛点3：汇率波动风险大\n\n"
+                f" Ksher 解决方案：\n"
                 f"本地牌照 · 直接清算 · 锁汇保护 · API对接"
             ),
             "cta": "下载{country_label}收款白皮书",
@@ -224,7 +224,7 @@ def render_design_studio():
 
 def _render_poster_tab():
     """渲染海报生成Tab"""
-    st.markdown("####  营销海报文案生成")
+    st.markdown("#### 营销海报文案生成")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -255,7 +255,7 @@ def _render_poster_tab():
     poster = st.session_state.get("ds_poster")
     if poster:
         st.markdown("---")
-        st.markdown("####  海报文案")
+        st.markdown("#### 海报文案")
 
         # 海报预览
         st.markdown(
@@ -323,7 +323,7 @@ def _render_poster_tab():
 
 def _render_ppt_tab():
     """渲染PPT生成Tab"""
-    st.markdown("####  方案PPT大纲生成")
+    st.markdown("#### 方案PPT大纲生成")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -358,7 +358,7 @@ def _render_ppt_tab():
     ppt = st.session_state.get("ds_ppt")
     if ppt:
         st.markdown("---")
-        st.markdown(f"####  {ppt['title']}")
+        st.markdown(f"#### {ppt['title']}")
         st.caption(f"{ppt['subtitle']} | 共 {ppt['total_slides']} 页 | 预计讲解 {ppt['estimated_time']}")
 
         for slide in ppt["slides"]:

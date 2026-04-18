@@ -229,7 +229,7 @@ def _build_cost_summary(
             f"**{labels.get('痛点标题', '')}：**\n"
             f"1. **{labels.get('痛点1', '')}**，您年流水 {annual} 万，汇率损失约 **{current_fx:,.1f} 万元**\n"
             f"2. **{labels.get('痛点2', '')}**，全年固定支出约 **{current_fee:,.1f} 万元**\n"
-            f"3. **{labels.get('痛点3', '')}** 约 **{current_time:,.1f} 万元**\n\n"
+            f"3. **{labels.get('痛点3', '')}**约 **{current_time:,.1f} 万元**\n\n"
             f"切换到 Ksher 后，预计年节省 **{saving:,.1f} 万元**：\n"
             f"- {labels.get('切换优势', '')}\n"
             f"- T+1 到账，释放资金占用\n"
@@ -275,9 +275,9 @@ def _mock_proposal_pack(context: dict) -> dict:
         ),
         "product_recommendation": (
             f"推荐产品组合：\n\n"
-            f"1. **Ksher Global Account** — 多币种虚拟账户，一站式管理{country}及东南亚多市场收款\n"
-            f"2. **锁汇工具** — 支持7-90天远期锁汇，对冲汇率波动风险\n"
-            f"3. **API 对接** — 支持 ERP/电商平台自动对账，减少人工操作"
+            f"1. **Ksher Global Account**— 多币种虚拟账户，一站式管理{country}及东南亚多市场收款\n"
+            f"2. **锁汇工具**— 支持7-90天远期锁汇，对冲汇率波动风险\n"
+            f"3. **API 对接**— 支持 ERP/电商平台自动对账，减少人工操作"
         ),
         "fee_advantage": (
             f"**费率优势**\n\n"
@@ -493,7 +493,7 @@ def render_battle_station():
                 font-size: 0.75rem;
                 margin-bottom: 0.5rem;
             '>
-                <span>🤖</span>
+                <span></span>
                 <span>AI 真实模式（调用 Kimi + Claude）</span>
             </div>
             """,

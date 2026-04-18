@@ -112,10 +112,10 @@ def render_customer_input_form() -> dict:
                     </span>
                 </div>
                 <div style='font-size: 0.78rem; color: {BRAND_COLORS["text_secondary"]}; line-height: 1.5; padding-left: 1.6rem;'>
-                    <div> <b>话术聚焦</b>：{bf_speech}</div>
-                    <div> <b>成本聚焦</b>：{bf_cost}</div>
-                    <div> <b>方案聚焦</b>：{bf_proposal}</div>
-                    <div> <b>异议聚焦</b>：{bf_objection}</div>
+                    <div><b>话术聚焦</b>：{bf_speech}</div>
+                    <div><b>成本聚焦</b>：{bf_cost}</div>
+                    <div><b>方案聚焦</b>：{bf_proposal}</div>
+                    <div><b>异议聚焦</b>：{bf_objection}</div>
                 </div>
             </div>
             """,

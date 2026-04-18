@@ -270,7 +270,7 @@ def _render_battlefield_mode(battlefield: str):
 
             # 评分
             st.markdown("---")
-            st.markdown("** 自我评估**")
+            st.markdown("**自我评估**")
             cols = st.columns(3)
             with cols[0]:
                 st.slider(
@@ -307,7 +307,7 @@ def _render_all_mode():
 
     filtered = [o for o in all_objs if o.get("battlefield") in bf_filter]
 
-    st.markdown(f"共 **{len(filtered)}** 个异议场景")
+    st.markdown(f"共 **{len(filtered)}**个异议场景")
 
     for obj in filtered:
         bf = obj.get("battlefield", "")
@@ -322,7 +322,7 @@ def _render_all_mode():
 
 def _render_practice_mode():
     """自由练习模式"""
-    st.markdown("####  自由练习")
+    st.markdown("#### 自由练习")
     st.markdown(
         "输入你遇到的真实客户异议，AI 会帮你分析并生成3种应对策略。\n\n"
         "（真实模式就绪后启用，当前展示示例）"
@@ -374,9 +374,9 @@ def _render_practice_mode():
     result = st.session_state.get("obj_practice_result")
     if result:
         st.markdown("---")
-        st.markdown(f"####  异议分析：{result['objection'][:50]}...")
+        st.markdown(f"#### 异议分析：{result['objection'][:50]}...")
 
-        st.markdown(f"** 核心洞察**：{result['analysis']}")
+        st.markdown(f"**核心洞察**：{result['analysis']}")
         st.markdown("---")
 
         tabs = st.tabs([" 直接回应", " 共情回应", " 数据回应", " 训练要点"])

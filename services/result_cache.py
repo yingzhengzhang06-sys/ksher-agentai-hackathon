@@ -39,9 +39,9 @@ class ResultCache:
         self._hits = 0
         self._misses = 0
 
-    def _make_key(self, context: dict) -> str:
+    def _make_key(self, context: dict, agent_name: str = "") -> str:
         """
-        基于客户画像生成缓存 key。
+        基于客户画像 + Agent 名称生成缓存 key。
 
         使用以下字段（如果存在）：
         - company
@@ -49,8 +49,10 @@ class ResultCache:
         - target_country
         - current_channel
         - monthly_volume（取整到千位，减少抖动）
+        - agent_name（确保不同 Agent 不共享缓存）
         """
         key_parts = {
+            "agent": agent_name,
             "company": context.get("company", ""),
             "industry": context.get("industry", ""),
             "target_country": context.get("target_country", ""),
@@ -62,17 +64,18 @@ class ResultCache:
         key_str = json.dumps(key_parts, sort_keys=True, ensure_ascii=False)
         return hashlib.md5(key_str.encode("utf-8")).hexdigest()
 
-    def get(self, context: dict) -> Optional[dict]:
+    def get(self, context: dict, agent_name: str = "") -> Optional[dict]:
         """
         获取缓存结果。
 
         Args:
             context: 客户上下文
+            agent_name: Agent 名称（用于区分不同 Agent 的缓存）
 
         Returns:
             dict or None: 缓存命中返回结果，否则返回 None
         """
-        key = self._make_key(context)
+        key = self._make_key(context, agent_name)
         entry = self._cache.get(key)
 
         if entry is None:
@@ -87,15 +90,16 @@ class ResultCache:
         self._hits += 1
         return dict(entry.result)
 
-    def set(self, context: dict, result: dict) -> None:
+    def set(self, context: dict, result: dict, agent_name: str = "") -> None:
         """
         设置缓存结果。
 
         Args:
             context: 客户上下文
             result: 需要缓存的结果 dict
+            agent_name: Agent 名称（用于区分不同 Agent 的缓存）
         """
-        key = self._make_key(context)
+        key = self._make_key(context, agent_name)
         self._cache[key] = CacheEntry(
             result=dict(result),
             created_at=time.time(),
@@ -156,14 +160,18 @@ def cached_generate(generate_fn):
         @cached_generate
         def generate(self, context):
             ...
+
+    注意：ProposalAgent 等有依赖的 Agent 不建议使用此装饰器，
+    因为其结果依赖其他 Agent 的输出，缓存会导致数据不一致。
     """
     def wrapper(self, context: dict) -> dict:
         cache = get_cache()
-        cached = cache.get(context)
+        agent_name = getattr(self, 'agent_name', '')
+        cached = cache.get(context, agent_name)
         if cached is not None:
             return cached
         result = generate_fn(self, context)
-        cache.set(context, result)
+        cache.set(context, result, agent_name)
         return result
     return wrapper
 
@@ -184,27 +192,31 @@ if __name__ == "__main__":
     }
 
     # 第一次：miss
-    result = cache.get(ctx)
+    result = cache.get(ctx, agent_name="speech")
     print(f"\n第一次 get: {'命中' if result else '未命中'}")
     print(f"  stats: {cache.stats()}")
 
     # 设置缓存
-    cache.set(ctx, {"speech": "test", "cost": {"annual_saving": 10000}})
+    cache.set(ctx, {"speech": "test", "cost": {"annual_saving": 10000}}, agent_name="speech")
     print(f"\n设置缓存后: {cache.stats()}")
 
     # 第二次：hit
-    result = cache.get(ctx)
+    result = cache.get(ctx, agent_name="speech")
     print(f"\n第二次 get: {'命中' if result else '未命中'}")
     print(f"  result: {result}")
     print(f"  stats: {cache.stats()}")
 
+    # 相同画像不同 Agent：不应命中
+    result_cost = cache.get(ctx, agent_name="cost")
+    print(f"\n相同画像不同 Agent (cost): {'命中' if result_cost else '未命中'}")
+
     # 相同画像（月流水 49500 → 取整到 50000）
     ctx2 = dict(ctx, monthly_volume=49500)
-    result2 = cache.get(ctx2)
+    result2 = cache.get(ctx2, agent_name="speech")
     print(f"\n相似画像 get (49500 vs 50000): {'命中' if result2 else '未命中'}")
 
     # 不同画像
     ctx3 = dict(ctx, company="另一家公司")
-    result3 = cache.get(ctx3)
+    result3 = cache.get(ctx3, agent_name="speech")
     print(f"\n不同画像 get: {'命中' if result3 else '未命中'}")
     print(f"  stats: {cache.stats()}")

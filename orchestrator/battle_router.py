@@ -13,6 +13,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import CHANNEL_BATTLEFIELD_MAP, BATTLEFIELD_TYPES
+from services.result_cache import get_cache
 
 
 def detect_battlefield(current_channel: str) -> str:
@@ -96,6 +97,10 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
         context = enrich_context(context)
 
     battlefield = context["battlefield"]
+    # 缓存实例
+    cache = get_cache()
+    cache_hits = []
+
     result = {
         "speech": {},
         "cost": {},
@@ -106,6 +111,7 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
             "battlefield": battlefield,
             "battlefield_label": BATTLEFIELD_TYPES.get(battlefield, {}).get("label", ""),
             "execution_time_ms": 0,
+            "cache_hits": [],
         }
     }
 
@@ -119,12 +125,18 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
         phase1_agents["objection"] = agents["objection"]
 
     def run_agent(name: str, agent):
-        """运行单个 Agent，返回 (name, result)。"""
+        """运行单个 Agent，返回 (name, result, cached)。"""
         try:
+            # Phase 1 Agent（独立）：尝试读取缓存
+            cached = cache.get(context, name)
+            if cached is not None:
+                return name, cached, True
+            # 未命中：调用 LLM 生成
             output = agent.generate(context)
-            return name, output
+            cache.set(context, output, name)
+            return name, output, False
         except Exception as e:
-            return name, {"error": str(e), "_agent": name}
+            return name, {"error": str(e), "_agent": name}, False
 
     # 使用线程池并行执行
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
@@ -133,10 +145,13 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
             for name, agent in phase1_agents.items()
         }
         for future in concurrent.futures.as_completed(futures):
-            name, output = future.result()
+            name, output, cached = future.result()
             result[name] = output
+            if cached:
+                cache_hits.append(name)
 
     # ==================== 阶段2：串行执行（依赖 Cost）====================
+    # 注意：ProposalAgent 不缓存，因为它的输入包含其他 Agent 的输出
     if "proposal" in agents:
         proposal_agent = agents["proposal"]
         # 将 CostAgent 的输出注入 Proposal 的上下文
@@ -153,6 +168,9 @@ def generate_battle_pack(context: dict, agents: dict) -> dict:
     # 计算执行时间
     elapsed_ms = int((time.time() - start_time) * 1000)
     result["metadata"]["execution_time_ms"] = elapsed_ms
+    result["metadata"]["cache_hits"] = cache_hits
+    if cache_hits:
+        result["metadata"]["cached"] = True
 
     return result
 
@@ -162,8 +180,11 @@ def generate_battle_pack_sync(context: dict, agents: dict) -> dict:
     同步顺序生成作战包（无并行，用于调试或资源受限环境）。
 
     执行顺序：Speech → Cost → Objection → Proposal
+    Phase 1 Agent（Speech/Cost/Objection）启用缓存，Proposal 不缓存。
     """
     start_time = time.time()
+    cache = get_cache()
+    cache_hits = []
 
     if "battlefield" not in context:
         context = enrich_context(context)
@@ -180,18 +201,25 @@ def generate_battle_pack_sync(context: dict, agents: dict) -> dict:
             "battlefield_label": BATTLEFIELD_TYPES.get(battlefield, {}).get("label", ""),
             "execution_time_ms": 0,
             "mode": "sync_sequential",
+            "cache_hits": [],
         }
     }
 
-    # 顺序执行
+    # 顺序执行 Phase 1（带缓存）
     for name in ["speech", "cost", "objection"]:
         if name in agents:
             try:
-                result[name] = agents[name].generate(context)
+                cached = cache.get(context, name)
+                if cached is not None:
+                    result[name] = cached
+                    cache_hits.append(name)
+                else:
+                    result[name] = agents[name].generate(context)
+                    cache.set(context, result[name], name)
             except Exception as e:
                 result[name] = {"error": str(e), "_agent": name}
 
-    # Proposal（依赖前面结果）
+    # Proposal（依赖前面结果，不缓存）
     if "proposal" in agents:
         proposal_context = dict(context)
         proposal_context["cost_analysis"] = result.get("cost", {})
@@ -204,6 +232,9 @@ def generate_battle_pack_sync(context: dict, agents: dict) -> dict:
 
     elapsed_ms = int((time.time() - start_time) * 1000)
     result["metadata"]["execution_time_ms"] = elapsed_ms
+    result["metadata"]["cache_hits"] = cache_hits
+    if cache_hits:
+        result["metadata"]["cached"] = True
 
     return result
 

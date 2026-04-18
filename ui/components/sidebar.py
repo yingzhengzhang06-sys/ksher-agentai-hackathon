@@ -101,7 +101,7 @@ def render_sidebar() -> str:
                     <div style='font-size:0.75rem;color:{BRAND_COLORS["text_secondary"]};margin-bottom:0.2rem;'>
                         当前客户
                     </div>
-                    <div style='font-size:0.9rem;font-weight:600;color:#FFFFFF;'>
+                    <div style='font-size:0.9rem;font-weight:600;color:#1D1D1F;'>
                         {_company}
                     </div>
                     <div style='font-size:0.75rem;color:{BRAND_COLORS["text_muted"]};margin-top:0.2rem;'>

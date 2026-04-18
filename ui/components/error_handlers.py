@@ -29,15 +29,15 @@ def render_network_error(on_retry=None):
     st.markdown(
         f"""
         <div style='
-            background: rgba(232, 62, 76, 0.08);
-            border: 1px solid rgba(232, 62, 76, 0.25);
+            background: rgba(232, 62, 76, 0.06);
+            border: 1px solid rgba(232, 62, 76, 0.2);
             border-radius: 0.75rem;
             padding: 1.5rem;
             text-align: center;
             margin: 1rem 0;
         '>
             <div style='font-size: 2rem; margin-bottom: 0.5rem;'>🌐</div>
-            <div style='font-size: 1.1rem; font-weight: 600; color: #FFFFFF; margin-bottom: 0.3rem;'>
+            <div style='font-size: 1.1rem; font-weight: 600; color: #1D1D1F; margin-bottom: 0.3rem;'>
                 网络连接异常
             </div>
             <div style='font-size: 0.85rem; color: {BRAND_COLORS["text_secondary"]}; margin-bottom: 1rem;'>
@@ -62,15 +62,15 @@ def render_quota_exceeded():
     st.markdown(
         f"""
         <div style='
-            background: rgba(255, 184, 0, 0.08);
-            border: 1px solid rgba(255, 184, 0, 0.25);
+            background: rgba(255, 184, 0, 0.06);
+            border: 1px solid rgba(255, 184, 0, 0.2);
             border-radius: 0.75rem;
             padding: 1.5rem;
             text-align: center;
             margin: 1rem 0;
         '>
             <div style='font-size: 2rem; margin-bottom: 0.5rem;'>⚡</div>
-            <div style='font-size: 1.1rem; font-weight: 600; color: #FFFFFF; margin-bottom: 0.3rem;'>
+            <div style='font-size: 1.1rem; font-weight: 600; color: #1D1D1F; margin-bottom: 0.3rem;'>
                 API 调用额度不足
             </div>
             <div style='font-size: 0.85rem; color: {BRAND_COLORS["text_secondary"]}; margin-bottom: 1rem;'>
@@ -105,7 +105,7 @@ def render_error(message: str, detail: str = ""):
         '>
             <div style='display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem;'>
                 <span style='font-size: 1.2rem;'>⚠️</span>
-                <span style='font-size: 1rem; font-weight: 600; color: #FFFFFF;'>{message}</span>
+                <span style='font-size: 1rem; font-weight: 600; color: #1D1D1F;'>{message}</span>
             </div>
             {f"<div style='font-size: 0.85rem; color: {BRAND_COLORS['text_secondary']}; padding-left: 1.8rem;'>{detail}</div>" if detail else ""}
         </div>
@@ -153,14 +153,14 @@ def render_empty_state(
         f"""
         <div style='
             background: {BRAND_COLORS["surface"]};
-            border: 1px dashed rgba(255,255,255,0.1);
+            border: 1px dashed #D2D2D7;
             border-radius: 0.75rem;
             padding: 3rem 2rem;
             text-align: center;
             margin: 1rem 0;
         '>
             <div style='font-size: 3rem; margin-bottom: 0.8rem; opacity: 0.6;'>{icon}</div>
-            <div style='font-size: 1.1rem; font-weight: 600; color: #FFFFFF; margin-bottom: 0.4rem;'>
+            <div style='font-size: 1.1rem; font-weight: 600; color: #1D1D1F; margin-bottom: 0.4rem;'>
                 {title}
             </div>
             <div style='font-size: 0.85rem; color: {BRAND_COLORS["text_secondary"]}; max-width: 300px; margin: 0 auto;'>
@@ -187,8 +187,8 @@ def render_mock_fallback_notice(title: str = "", detail: str = ""):
     st.markdown(
         f"""
         <div style='
-            background: rgba(255, 184, 0, 0.06);
-            border: 1px solid rgba(255, 184, 0, 0.2);
+            background: rgba(255, 184, 0, 0.05);
+            border: 1px solid rgba(255, 184, 0, 0.18);
             border-radius: 0.5rem;
             padding: 0.6rem 1rem;
             margin-bottom: 1rem;
@@ -197,7 +197,7 @@ def render_mock_fallback_notice(title: str = "", detail: str = ""):
             gap: 0.5rem;
         '>
             <span style='font-size: 1rem;'>⚡</span>
-            <span style='font-size: 0.8rem; color: {BRAND_COLORS["warning"]};'>
+            <span style='font-size: 0.8rem; color: #B8860B;'>
                 {msg}{detail_html}
             </span>
         </div>

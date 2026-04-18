@@ -359,7 +359,7 @@ def render_content_factory():
                     f"""
                     <div style='
                         background: {BRAND_COLORS["surface"]};
-                        border: 1px solid rgba(255,255,255,0.08);
+                        border: 1px solid #E8E8ED;
                         border-radius: 0.6rem;
                         padding: 1rem;
                         margin-bottom: 1rem;
@@ -376,7 +376,7 @@ def render_content_factory():
                             <span style='
                                 color: {BRAND_COLORS["text_muted"]};
                                 font-size: 0.75rem;
-                                background: rgba(255,255,255,0.05);
+                                background: #F5F5F7;
                                 padding: 0.15rem 0.5rem;
                                 border-radius: 0.3rem;
                             '>
@@ -393,7 +393,7 @@ def render_content_factory():
                         <div style='
                             color: {BRAND_COLORS["text_muted"]};
                             font-size: 0.75rem;
-                            border-top: 1px solid rgba(255,255,255,0.05);
+                            border-top: 1px solid #E8E8ED;
                             padding-top: 0.5rem;
                         '>
                             💡 {item['tips']}

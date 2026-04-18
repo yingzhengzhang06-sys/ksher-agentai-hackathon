@@ -96,8 +96,8 @@ PLOTLY_THEME = {
 }
 
 GRID_AXIS = {
-    "gridcolor": "rgba(255,255,255,0.05)",
-    "zerolinecolor": "rgba(255,255,255,0.05)",
+    "gridcolor": "rgba(0,0,0,0.05)",
+    "zerolinecolor": "rgba(0,0,0,0.05)",
 }
 
 
@@ -119,7 +119,7 @@ def _render_kpi_cards(summary: dict):
                 f"""
                 <div style='
                     background: {BRAND_COLORS["surface"]};
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border: 1px solid #E8E8ED;
                     border-radius: 0.75rem;
                     padding: 1.2rem 1rem;
                     text-align: center;
@@ -155,14 +155,14 @@ def _render_funnel_chart(funnel: dict):
             "line": {"width": 0},
         },
         connector={
-            "line": {"color": "rgba(255,255,255,0.1)", "width": 1},
-            "fillcolor": "rgba(255,255,255,0.02)",
+            "line": {"color": "rgba(0,0,0,0.1)", "width": 1},
+            "fillcolor": "rgba(0,0,0,0.02)",
         },
     ))
 
     fig.update_layout(
         **PLOTLY_THEME,
-        title={"text": "客户转化率漏斗", "font": {"size": 16, "color": "#FFFFFF"}, "x": 0.02},
+        title={"text": "客户转化率漏斗", "font": {"size": 16, "color": "#1D1D1F"}, "x": 0.02},
         margin={"t": 50, "b": 30, "l": 120, "r": 30},
         height=320,
         xaxis=GRID_AXIS,
@@ -192,7 +192,7 @@ def _render_battlefield_chart(bf_stats: dict):
             hole=0.45,
             marker={"colors": colors, "line": {"color": "rgba(0,0,0,0)", "width": 0}},
             textinfo="label+percent",
-            textfont={"color": "#FFFFFF", "size": 11},
+            textfont={"color": "#1D1D1F", "size": 11},
             hovertemplate="%{label}<br>客户数: %{value}<br>占比: %{percent}<extra></extra>",
         ),
         row=1, col=1,
@@ -205,7 +205,7 @@ def _render_battlefield_chart(bf_stats: dict):
             marker={"color": colors, "line": {"color": "rgba(0,0,0,0)", "width": 0}},
             text=[f"{p}%" for p in percentages],
             textposition="outside",
-            textfont={"color": "#FFFFFF", "size": 12},
+            textfont={"color": "#1D1D1F", "size": 12},
             hovertemplate="%{x}<br>%{y}%<extra></extra>",
         ),
         row=1, col=2,
@@ -253,13 +253,13 @@ def _render_agent_usage_chart(agent_usage: dict):
         marker={"color": colors, "line": {"color": "rgba(0,0,0,0)", "width": 0}},
         text=calls,
         textposition="outside",
-        textfont={"color": "#FFFFFF", "size": 12},
+        textfont={"color": "#1D1D1F", "size": 12},
         hovertemplate="%{x}<br>调用次数: %{y}<extra></extra>",
     ))
 
     fig.update_layout(
         **PLOTLY_THEME,
-        title={"text": "Agent 调用统计", "font": {"size": 16, "color": "#FFFFFF"}, "x": 0.02},
+        title={"text": "Agent 调用统计", "font": {"size": 16, "color": "#1D1D1F"}, "x": 0.02},
         margin={"t": 60, "b": 40, "l": 40, "r": 40},
         height=300,
         xaxis={"title": "", **GRID_AXIS},
@@ -296,7 +296,7 @@ def _render_weekly_trend(trend: list):
 
     fig.update_layout(
         **PLOTLY_THEME,
-        title={"text": "周趋势", "font": {"size": 16, "color": "#FFFFFF"}, "x": 0.02},
+        title={"text": "周趋势", "font": {"size": 16, "color": "#1D1D1F"}, "x": 0.02},
         legend={
             "orientation": "h", "yanchor": "bottom", "y": 1.02,
             "xanchor": "right", "x": 1, "font": {"color": "#B0B0C0"},

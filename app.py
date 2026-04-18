@@ -52,7 +52,7 @@ def _inject_brand_css():
 
     css = f"""
     <style>
-    /* ===== CSS Variables ===== */
+    /* ===== CSS Variables (Apple-style light theme) ===== */
     :root {{
         --ksher-primary: {primary};
         --ksher-primary-dark: {primary_dark};
@@ -62,205 +62,230 @@ def _inject_brand_css():
         --ksher-accent: {accent};
         --ksher-text-secondary: {text_secondary};
         --ksher-text-muted: {text_muted};
-        --radius-sm: 0.35rem;
-        --radius-md: 0.5rem;
-        --radius-lg: 0.75rem;
-        --radius-xl: 1rem;
+        --radius-sm: 0.5rem;
+        --radius-md: 0.75rem;
+        --radius-lg: 1rem;
+        --radius-xl: 1.25rem;
+        --radius-pill: 9999px;
         --transition-fast: 0.15s ease;
         --transition-normal: 0.25s ease;
-        --shadow-sm: 0 2px 8px rgba(0,0,0,0.15);
-        --shadow-md: 0 4px 16px rgba(0,0,0,0.2);
-        --shadow-glow: 0 0 12px rgba(232,62,76,0.25);
     }}
 
-    /* ===== 全局背景与文字 ===== */
+    /* ===== Global background & text (light) ===== */
     .stApp {{
         background-color: {bg} !important;
     }}
     .main .block-container {{
-        padding-top: 2rem;
+        padding-top: 2.5rem;
         padding-bottom: 3rem;
-        padding-left: 2.5rem;
-        padding-right: 2.5rem;
+        padding-left: 3rem;
+        padding-right: 3rem;
     }}
 
-    /* ===== 侧边栏 ===== */
+    /* ===== Sidebar (light gray) ===== */
     [data-testid="stSidebar"] {{
         background-color: {surface} !important;
-        border-right: 1px solid rgba(255,255,255,0.05);
+        border-right: 1px solid #E8E8ED;
     }}
     [data-testid="stSidebar"] .stRadio label {{
-        color: {text_secondary} !important;
+        color: #1D1D1F !important;
         font-size: 0.95rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0.55rem 0.9rem;
         border-radius: var(--radius-md);
-        transition: all var(--transition-fast);
+        transition: background var(--transition-fast);
         margin: 2px 0;
     }}
     [data-testid="stSidebar"] .stRadio label:hover {{
-        background-color: rgba(232, 62, 76, 0.1);
-        color: #FFFFFF !important;
-        transform: translateX(2px);
+        background-color: rgba(232, 62, 76, 0.06);
+        color: {primary} !important;
     }}
     [data-testid="stSidebar"] .stRadio [aria-checked="true"] + label {{
-        background-color: rgba(232, 62, 76, 0.15) !important;
+        background-color: rgba(232, 62, 76, 0.1) !important;
         color: {primary} !important;
         font-weight: 600;
-        border-left: 3px solid {primary};
     }}
 
-    /* ===== 按钮品牌色 + 动画 ===== */
+    /* ===== Pill-shaped primary buttons (Apple style) ===== */
     .stButton > button {{
         background-color: {primary} !important;
         color: #FFFFFF !important;
         border: none !important;
-        border-radius: var(--radius-md) !important;
-        font-weight: 600 !important;
-        padding: 0.5rem 1.25rem !important;
-        transition: all var(--transition-normal) !important;
-        position: relative;
-        overflow: hidden;
+        border-radius: var(--radius-pill) !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+        padding: 0.55rem 1.5rem !important;
+        transition: opacity var(--transition-fast), transform var(--transition-fast) !important;
+        letter-spacing: 0.01em;
     }}
     .stButton > button:hover {{
         background-color: {primary_dark} !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(232, 62, 76, 0.35);
+        opacity: 0.92;
     }}
     .stButton > button:active {{
-        transform: translateY(0);
-        box-shadow: 0 2px 8px rgba(232, 62, 76, 0.2);
+        transform: scale(0.97);
     }}
 
-    /* ===== 次要按钮 ===== */
+    /* ===== Secondary buttons (pill + outline) ===== */
     .stButton > button[kind="secondary"] {{
         background-color: transparent !important;
         color: {primary} !important;
-        border: 1px solid {primary} !important;
+        border: 1.5px solid {primary} !important;
     }}
     .stButton > button[kind="secondary"]:hover {{
-        background-color: rgba(232, 62, 76, 0.08) !important;
+        background-color: rgba(232, 62, 76, 0.06) !important;
+        opacity: 1;
     }}
 
-    /* ===== Tab 样式 + 动画 ===== */
+    /* ===== Tab style (clean, minimal) ===== */
     .stTabs [data-baseweb="tab-list"] {{
-        gap: 6px;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        padding-bottom: 2px;
+        gap: 4px;
+        border-bottom: 1px solid #E8E8ED;
+        padding-bottom: 0;
     }}
     .stTabs [data-baseweb="tab"] {{
-        color: {text_secondary} !important;
+        color: #86868B !important;
         font-weight: 500;
         border-radius: var(--radius-md) var(--radius-md) 0 0;
         padding: 0.65rem 1.25rem;
-        transition: all var(--transition-fast);
+        transition: color var(--transition-fast);
         border-bottom: 2px solid transparent;
     }}
     .stTabs [data-baseweb="tab"]:hover {{
-        color: #FFFFFF !important;
-        background-color: rgba(255,255,255,0.03);
+        color: #1D1D1F !important;
+        background-color: transparent;
     }}
     .stTabs [aria-selected="true"] {{
         color: {primary} !important;
         border-bottom: 2px solid {primary} !important;
-        background-color: rgba(232, 62, 76, 0.06);
+        background-color: transparent;
+        font-weight: 600;
     }}
 
-    /* ===== 输入框 + 聚焦状态 ===== */
+    /* ===== Input fields (light) ===== */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
     .stMultiselect > div > div > div {{
-        background-color: {surface} !important;
-        color: #FFFFFF !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
+        background-color: #FFFFFF !important;
+        color: #1D1D1F !important;
+        border: 1px solid #D2D2D7 !important;
         border-radius: var(--radius-md) !important;
-        transition: all var(--transition-fast);
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     }}
     .stTextInput > div > div > input:focus,
     .stNumberInput > div > div > input:focus,
     .stSelectbox > div > div > div:focus-within,
     .stMultiselect > div > div > div:focus-within {{
         border-color: {primary} !important;
-        box-shadow: 0 0 0 3px rgba(232, 62, 76, 0.15), var(--shadow-glow) !important;
+        box-shadow: 0 0 0 4px rgba(232, 62, 76, 0.1) !important;
         outline: none !important;
     }}
     .stTextInput > div > div > input:hover,
     .stNumberInput > div > div > input:hover,
     .stSelectbox > div > div > div:hover,
     .stMultiselect > div > div > div:hover {{
-        border-color: rgba(232, 62, 76, 0.4) !important;
+        border-color: #86868B !important;
     }}
 
-    /* ===== 卡片/容器 + 动画 ===== */
+    /* ===== Cards / Containers (no shadow, subtle bg) ===== */
     div[data-testid="stExpander"] {{
         background-color: {surface};
-        border: 1px solid rgba(255,255,255,0.05);
+        border: none;
         border-radius: var(--radius-lg);
-        transition: all var(--transition-fast);
+        transition: background-color var(--transition-fast);
     }}
     div[data-testid="stExpander"]:hover {{
-        border-color: rgba(232, 62, 76, 0.15);
-        box-shadow: var(--shadow-sm);
+        background-color: #EBEBF0;
     }}
     div[data-testid="stExpander"] > div:first-child {{
         border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }}
 
-    /* ===== 信息框 ===== */
+    /* ===== Alert / Info boxes (light theme semantic colors) ===== */
     .stAlert {{
-        border-radius: var(--radius-md);
-        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: var(--radius-lg) !important;
+        border: none !important;
+        padding: 1rem 1.25rem !important;
     }}
-    .stAlert[data-baseweb="notification"] {{
-        background-color: {surface} !important;
+    /* Info - soft blue */
+    .stAlert[data-baseweb="notification"][data-kind="info"] {{
+        background-color: #F0F7FF !important;
+        border-left: 4px solid #3B82F6 !important;
+    }}
+    .stAlert[data-baseweb="notification"][data-kind="info"] [data-testid="stAlertContent"] {{
+        color: #1D1D1F !important;
+    }}
+    /* Success - soft green */
+    .stAlert[data-baseweb="notification"][data-kind="positive"] {{
+        background-color: #F0FFF4 !important;
+        border-left: 4px solid #00C9A7 !important;
+    }}
+    .stAlert[data-baseweb="notification"][data-kind="positive"] [data-testid="stAlertContent"] {{
+        color: #1D1D1F !important;
+    }}
+    /* Warning - soft yellow */
+    .stAlert[data-baseweb="notification"][data-kind="warning"] {{
+        background-color: #FFFBF0 !important;
+        border-left: 4px solid #FFB800 !important;
+    }}
+    .stAlert[data-baseweb="notification"][data-kind="warning"] [data-testid="stAlertContent"] {{
+        color: #1D1D1F !important;
+    }}
+    /* Error - soft red */
+    .stAlert[data-baseweb="notification"][data-kind="negative"] {{
+        background-color: #FFF0F0 !important;
+        border-left: 4px solid #E83E4C !important;
+    }}
+    .stAlert[data-baseweb="notification"][data-kind="negative"] [data-testid="stAlertContent"] {{
+        color: #1D1D1F !important;
     }}
 
-    /* ===== Metric 组件美化 ===== */
+    /* ===== Metric cards (clean, minimal) ===== */
     [data-testid="stMetric"] {{
         background-color: {surface};
-        border: 1px solid rgba(255,255,255,0.06);
+        border: none;
         border-radius: var(--radius-lg);
-        padding: 1rem 1.25rem;
-        transition: all var(--transition-fast);
+        padding: 1.25rem 1.5rem;
+        transition: background-color var(--transition-fast);
     }}
     [data-testid="stMetric"]:hover {{
-        border-color: rgba(232, 62, 76, 0.2);
-        box-shadow: var(--shadow-sm);
-        transform: translateY(-1px);
+        background-color: #EBEBF0;
     }}
     [data-testid="stMetricValue"] {{
         color: {primary} !important;
         font-weight: 700 !important;
-        font-size: 1.6rem !important;
+        font-size: 1.8rem !important;
+        letter-spacing: -0.02em;
     }}
     [data-testid="stMetricLabel"] {{
-        color: {text_secondary} !important;
+        color: #86868B !important;
         font-size: 0.85rem;
+        font-weight: 500;
     }}
     [data-testid="stMetricDelta"] {{
         font-size: 0.8rem;
         font-weight: 500;
     }}
 
-    /* ===== 进度/状态 ===== */
+    /* ===== Progress bar ===== */
     .stProgress > div > div > div {{
         background-color: {primary} !important;
         border-radius: var(--radius-sm);
     }}
 
-    /* ===== Spinner 品牌色 ===== */
+    /* ===== Spinner brand color ===== */
     .stSpinner > div {{
         border-top-color: {primary} !important;
         border-left-color: {primary} !important;
     }}
 
-    /* ===== 分隔线 ===== */
+    /* ===== Divider (light gray) ===== */
     hr {{
-        border-color: rgba(255,255,255,0.08) !important;
-        margin: 1.5rem 0 !important;
+        border-color: #E8E8ED !important;
+        margin: 2rem 0 !important;
     }}
 
-    /* ===== 滚动条 ===== */
+    /* ===== Scrollbar (light) ===== */
     ::-webkit-scrollbar {{
         width: 6px;
         height: 6px;
@@ -270,20 +295,20 @@ def _inject_brand_css():
         border-radius: 3px;
     }}
     ::-webkit-scrollbar-thumb {{
-        background: {primary_dark};
+        background: #D2D2D7;
         border-radius: 3px;
     }}
     ::-webkit-scrollbar-thumb:hover {{
-        background: {primary};
+        background: #86868B;
     }}
 
-    /* ===== 数据表格 ===== */
+    /* ===== Data frame ===== */
     .stDataFrame {{
         border-radius: var(--radius-lg);
         overflow: hidden;
     }}
     .stDataFrame td, .stDataFrame th {{
-        border-color: rgba(255,255,255,0.05) !important;
+        border-color: #E8E8ED !important;
     }}
 
     /* ===== Slider ===== */
@@ -294,23 +319,124 @@ def _inject_brand_css():
         background-color: {primary} !important;
     }}
 
-    /* ===== 成功/强调文字 ===== */
+    /* ===== Text color utilities ===== */
     .success-text {{ color: {accent} !important; }}
     .brand-text {{ color: {primary} !important; }}
     .warning-text {{ color: {warning} !important; }}
     .danger-text {{ color: {danger} !important; }}
 
-    /* ===== 页面标题统一样式 ===== */
+    /* ===== Typography (Apple-style headings) ===== */
     h1 {{
         font-weight: 700 !important;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.03em;
+        color: #1D1D1F !important;
+        line-height: 1.1 !important;
     }}
     h2, h3 {{
         font-weight: 600 !important;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
+        color: #1D1D1F !important;
+    }}
+    p, li, td, th {{
+        color: #1D1D1F !important;
+    }}
+    .stMarkdown {{
+        color: #1D1D1F !important;
     }}
 
-    /* ===== 响应式：窄屏适配 ===== */
+    /* ===== Code blocks (light theme) ===== */
+    .stCodeBlock {{
+        background-color: #F5F5F7 !important;
+        border-radius: var(--radius-md) !important;
+        border: 1px solid #E8E8ED !important;
+    }}
+    .stCodeBlock pre {{
+        background-color: #F5F5F7 !important;
+        color: #1D1D1F !important;
+    }}
+    code {{
+        background-color: #F5F5F7 !important;
+        color: #E83E4C !important;
+        padding: 0.15rem 0.35rem !important;
+        border-radius: 0.3rem !important;
+        font-size: 0.85em !important;
+    }}
+
+    /* ===== Form labels ===== */
+    .stTextInput label, .stNumberInput label, .stSelectbox label,
+    .stMultiselect label, .stTextArea label, .stSlider label {{
+        color: #1D1D1F !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+    }}
+
+    /* ===== Checkbox / Radio labels ===== */
+    .stCheckbox label, .stRadio label {{
+        color: #1D1D1F !important;
+    }}
+
+    /* ===== Expander header text ===== */
+    div[data-testid="stExpander"] > div:first-child p {{
+        color: #1D1D1F !important;
+        font-weight: 600 !important;
+    }}
+
+    /* ===== Caption / helper text ===== */
+    .stCaption {{
+        color: #86868B !important;
+    }}
+
+    /* ===== Toast notifications ===== */
+    .toast-container {{
+        color: #1D1D1F !important;
+    }}
+
+    /* ===== Data editor / table header ===== */
+    .stDataFrame th {{
+        background-color: #F5F5F7 !important;
+        color: #1D1D1F !important;
+        font-weight: 600 !important;
+    }}
+    .stDataFrame td {{
+        color: #1D1D1F !important;
+    }}
+
+    /* ===== st.info icon colors ===== */
+    .stAlert [data-testid="stAlertContent"] > div:first-child {{
+        color: inherit !important;
+    }}
+
+    /* ===== Selectbox dropdown (light) ===== */
+    div[data-baseweb="popover"] div {{
+        background-color: #FFFFFF !important;
+        color: #1D1D1F !important;
+    }}
+    div[data-baseweb="popover"] li {{
+        color: #1D1D1F !important;
+    }}
+    div[data-baseweb="popover"] li:hover {{
+        background-color: #F5F5F7 !important;
+    }}
+
+    /* ===== File uploader ===== */
+    .stFileUploader > div > div {{
+        background-color: #F5F5F7 !important;
+        border: 2px dashed #D2D2D7 !important;
+        border-radius: var(--radius-lg) !important;
+    }}
+    .stFileUploader > div > div:hover {{
+        border-color: #E83E4C !important;
+        background-color: #FFF0F0 !important;
+    }}
+
+    /* ===== Tooltips ===== */
+    div[data-baseweb="tooltip"] {{
+        background-color: #1D1D1F !important;
+        color: #FFFFFF !important;
+        border-radius: var(--radius-md) !important;
+    }}
+
+    /* ===== Responsive ===== */
     @media (max-width: 768px) {{
         .main .block-container {{
             padding-left: 1rem;

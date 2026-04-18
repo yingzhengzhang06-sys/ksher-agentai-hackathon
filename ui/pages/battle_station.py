@@ -21,9 +21,11 @@ from ui.components.battle_pack_display import render_battle_pack
 
 
 # ============================================================
-# 模式配置
+# 模式配置（自动判断：BattleRouter 就绪 → 真实模式，否则 → Mock 模式）
 # ============================================================
-USE_MOCK = True  # True = Mock 模式，False = 真实 Agent 调用
+def _is_mock_mode() -> bool:
+    """判断是否使用 Mock 模式：BattleRouter 未初始化时回退到 Mock。"""
+    return not st.session_state.get("battle_router_ready", False)
 
 
 # ============================================================
@@ -282,41 +284,33 @@ def _generate_mock_battle_pack(context: dict) -> dict:
 
 
 # ============================================================
-# 真实调用接口（注释掉的框架，后端就绪后启用）
+# 真实调用接口（已启用：从 session_state 获取 BattleRouter）
 # ============================================================
 def _generate_real_battle_pack(context: dict) -> dict:
     """
-    调用 Orchestrator 生成真实作战包。
+    调用 BattleRouter 生成真实作战包。
 
-    需要：
-      - agents/ 目录下各 Agent 实现完毕
-      - services/llm_client.py API Key 配置正确
-      - orchestrator/agent_dispatcher.py 实现 generate_battle_pack()
-
-    使用方式：
-      1. 将 USE_MOCK = False
-      2. 取消下方注释并确保依赖就绪
+    依赖：
+      - app.py 启动时已通过 services.app_initializer 初始化 BattleRouter
+      - 4 个核心 Agent（Speech/Cost/Proposal/Objection）已注册到 Router
     """
-    # from orchestrator.agent_dispatcher import generate_battle_pack
-    # from agents.speech_agent import SpeechAgent
-    # from agents.cost_agent import CostAgent
-    # from agents.proposal_agent import ProposalAgent
-    # from agents.objection_agent import ObjectionAgent
-    # from services.llm_client import LLMClient
-    # from services.knowledge_loader import KnowledgeLoader
-    #
-    # llm_client = LLMClient()
-    # knowledge_loader = KnowledgeLoader()
-    #
-    # agents = {
-    #     "speech": SpeechAgent(llm_client, knowledge_loader),
-    #     "cost": CostAgent(llm_client, knowledge_loader),
-    #     "proposal": ProposalAgent(llm_client, knowledge_loader),
-    #     "objection": ObjectionAgent(llm_client, knowledge_loader),
-    # }
-    #
-    # return generate_battle_pack(context, agents)
-    raise NotImplementedError("真实模式尚未启用，请将 USE_MOCK 设为 True")
+    router = st.session_state.get("battle_router")
+    if router is None:
+        raise RuntimeError(
+            "BattleRouter 未初始化。请检查 app.py 中的 session_state 初始化，"
+            "或确认 API Key 配置正确（.env 文件）。"
+        )
+
+    # 设置上下文并执行（BattleRouter 内部会自动判断战场类型 + 半并行调度 Agent）
+    router.set_context(context)
+    result = router.route()
+
+    # 兼容 battle_pack 的统一格式：补充 generated_at 时间戳
+    result["generated_at"] = result.get("metadata", {}).get(
+        "generated_at", datetime.now().isoformat()
+    )
+
+    return result
 
 
 # ============================================================
@@ -336,8 +330,8 @@ def render_battle_station():
     )
     st.markdown("---")
 
-    # ---- 模式指示（开发调试用，后续可隐藏） ----
-    if USE_MOCK:
+    # ---- 模式指示 ----
+    if _is_mock_mode():
         st.markdown(
             f"""
             <div style='
@@ -353,7 +347,28 @@ def render_battle_station():
                 margin-bottom: 0.5rem;
             '>
                 <span>⚡</span>
-                <span>当前为 Mock 模式（本地模拟数据）</span>
+                <span>当前为 Mock 模式（BattleRouter 未就绪，请检查 API Key 配置）</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            f"""
+            <div style='
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                background: rgba(0, 201, 167, 0.1);
+                border: 1px solid rgba(0, 201, 167, 0.3);
+                color: {BRAND_COLORS["accent"]};
+                padding: 0.3rem 0.7rem;
+                border-radius: 0.4rem;
+                font-size: 0.75rem;
+                margin-bottom: 0.5rem;
+            '>
+                <span>🤖</span>
+                <span>AI 真实模式（调用 Kimi + Claude）</span>
             </div>
             """,
             unsafe_allow_html=True,
@@ -400,11 +415,19 @@ def render_battle_station():
             return
 
         with st.spinner("🤖 AI 正在生成作战包，请稍候..."):
-            if USE_MOCK:
+            if _is_mock_mode():
+                # BattleRouter 未就绪 → 回退到 Mock 数据
                 battle_pack = _generate_mock_battle_pack(context)
             else:
-                # 真实调用（后端就绪后启用）
-                battle_pack = _generate_real_battle_pack(context)
+                # BattleRouter 已就绪 → 真实 Agent 调用
+                try:
+                    battle_pack = _generate_real_battle_pack(context)
+                except Exception as e:
+                    # Agent 调用失败时降级到 Mock，保证 Demo 不中断
+                    st.warning(
+                        f"⚠️ 真实模式调用失败：{e}\n\n自动回退到 Mock 模式，确保演示可继续。"
+                    )
+                    battle_pack = _generate_mock_battle_pack(context)
             st.session_state.battle_pack = battle_pack
 
         st.success("✅ 作战包生成完成！")
@@ -419,6 +442,20 @@ def render_battle_station():
         bf_type = st.session_state.customer_context.get("battlefield", "increment")
         bf_info = BATTLEFIELD_TYPES.get(bf_type, {})
         bf_label = bf_info.get("label", bf_type)
+
+        # 安全处理：转义用户输入 + 使用作战包实际生成时间
+        import html as _html
+        _company = _html.escape(str(st.session_state.customer_context.get("company", "")))
+        _generated_at = battle_pack.get("generated_at", "")
+        if _generated_at:
+            try:
+                from datetime import datetime
+                _dt = datetime.fromisoformat(_generated_at.replace('Z', '+00:00'))
+                _time_str = _dt.strftime("%Y-%m-%d %H:%M")
+            except Exception:
+                _time_str = _generated_at[:16] if len(_generated_at) >= 16 else _generated_at
+        else:
+            _time_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
         st.markdown(
             f"""
@@ -436,10 +473,10 @@ def render_battle_station():
                     font-size: 0.8rem;
                     font-weight: 600;
                 '>
-                    {bf_label}
+                    {_html.escape(bf_label)}
                 </span>
                 <span style='color: {BRAND_COLORS["text_secondary"]}; font-size: 0.85rem;'>
-                    为客户「{st.session_state.customer_context.get("company", "")}」生成于 {datetime.now().strftime("%Y-%m-%d %H:%M")}
+                    为客户「{_company}」生成于 {_time_str}
                 </span>
             </div>
             """,

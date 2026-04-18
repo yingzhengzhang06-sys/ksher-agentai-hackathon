@@ -83,8 +83,12 @@ def render_sidebar() -> str:
         st.markdown("---")
 
         # ---- 当前客户快照（如果有） ----
+        import html as _html
         ctx = st.session_state.get("customer_context", {})
         if ctx.get("company"):
+            _company = _html.escape(str(ctx.get("company", "")))
+            _industry = _html.escape(str(ctx.get("industry", "")))
+            _country = _html.escape(str(ctx.get("target_country", "")))
             st.markdown(
                 f"""
                 <div style='
@@ -98,10 +102,10 @@ def render_sidebar() -> str:
                         当前客户
                     </div>
                     <div style='font-size:0.9rem;font-weight:600;color:#FFFFFF;'>
-                        {ctx.get("company", "")}
+                        {_company}
                     </div>
                     <div style='font-size:0.75rem;color:{BRAND_COLORS["text_muted"]};margin-top:0.2rem;'>
-                        {ctx.get("industry", "")} · {ctx.get("target_country", "")}
+                        {_industry} · {_country}
                     </div>
                 </div>
                 """,

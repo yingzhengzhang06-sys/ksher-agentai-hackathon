@@ -29,8 +29,16 @@ Thumbs.db
 .streamlit/secrets.toml
 !.streamlit/config.toml
 
-# 数据（可能包含敏感信息）
+# Claude 临时目录
+.claude/
+
+# 数据（运行时生成，可能包含敏感信息）
 data/feedback.json
+data/battle_packs/
+
+# 测试产出（截图/结果文件）
+tests/battle_pack_screenshot_*.png
+tests/e2e_battle_pack_result.json
 
 # 临时文件
 *.tmp

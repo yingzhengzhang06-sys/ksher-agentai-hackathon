@@ -39,6 +39,8 @@ data/battle_packs/
 # 测试产出（截图/结果文件）
 tests/battle_pack_screenshot_*.png
 tests/e2e_battle_pack_result.json
+tests/screenshots/
+.coverage
 
 # 临时文件
 *.tmp

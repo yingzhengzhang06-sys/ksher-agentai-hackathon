@@ -614,3 +614,7 @@ def render_moments_employee() -> None:
         _render_panel("初始空状态", "填写左侧输入条件后，生成结果会显示在这里。", level="info")
 
     _render_feedback_panel(current_response)
+
+
+if __name__ == "__main__":
+    render_moments_employee()

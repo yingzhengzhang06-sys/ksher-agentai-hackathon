@@ -7,6 +7,7 @@ import os
 import socket
 import sys
 import urllib.error
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -184,3 +185,9 @@ def test_call_generate_api_handles_malformed_json(mock_urlopen):
     assert response["status"] == "output_incomplete"
     assert response["errors"][0]["code"] == "output_incomplete"
 
+
+def test_moments_page_supports_streamlit_single_file_entry():
+    source = Path("ui/pages/moments_employee.py").read_text(encoding="utf-8")
+
+    assert 'if __name__ == "__main__":' in source
+    assert "render_moments_employee()" in source.split('if __name__ == "__main__":', 1)[1]

@@ -22,6 +22,7 @@ from ui.components.error_handlers import (
     render_mock_fallback_notice,
     render_network_error,
 )
+from services.llm_status import default_global_llm_status
 
 
 # ============================================================
@@ -467,6 +468,7 @@ def _init_session_state():
     """按 INTERFACES.md 规范初始化 session_state"""
     if "customer_context" not in st.session_state:
         st.session_state.customer_context = {
+            # 基础信息（原有7字段）
             "company": "",
             "industry": "",
             "target_country": "",
@@ -474,24 +476,105 @@ def _init_session_state():
             "current_channel": "",
             "pain_points": [],
             "battlefield": "",
+            # 联系人信息
+            "contact_name": "",
+            "phone": "",
+            "wechat": "",  # reserved
+            "email": "",  # reserved
+            # 企业详情
+            "company_size": "",
+            "years_established": 0,
+            "main_products": "",
+            # 收款详情
+            "monthly_transactions": 0,
+            "avg_transaction_amount": 0,
+            "main_currency": "",
+            "needs_hedging": False,
+            # 跟进状态
+            "customer_stage": "初次接触",
+            "next_followup_date": None,
+            "notes": "",
         }
+    if "current_customer_id" not in st.session_state:
+        st.session_state.current_customer_id = None
     if "battle_pack" not in st.session_state:
         st.session_state.battle_pack = None
     if "current_page" not in st.session_state:
-        st.session_state.current_page = "一键备战"
+        st.session_state.current_page = "销售支持"
     if "generation_loading" not in st.session_state:
         st.session_state.generation_loading = False
+    if "global_llm_status" not in st.session_state:
+        st.session_state.global_llm_status = default_global_llm_status()
+    if "llm_health" not in st.session_state:
+        st.session_state.llm_health = st.session_state.global_llm_status
+    if "llm_real_ready" not in st.session_state:
+        st.session_state.llm_real_ready = st.session_state.global_llm_status.get("ok", False)
 
-    # ---- 初始化 BattleRouter（真实 Agent 调用链） ----
+    # ---- 初始化工作流调度器 ----
+    if "workflow_scheduler" not in st.session_state:
+        try:
+            from core.scheduler import get_scheduler
+            scheduler = get_scheduler()
+            scheduler.start()
+            st.session_state.workflow_scheduler = scheduler
+            st.session_state.scheduler_ready = True
+        except Exception as e:
+            st.session_state.workflow_scheduler = None
+            st.session_state.scheduler_ready = False
+            st.session_state.scheduler_error = str(e)
+
+    # ---- 初始化所有 Agent（BattleRouter + 独立 Agent） ----
     if "battle_router" not in st.session_state:
         try:
-            from services.app_initializer import initialize_battle_router
-            st.session_state.battle_router = initialize_battle_router()
+            from services.app_initializer import initialize_all_agents
+            agents = initialize_all_agents()
+            st.session_state.battle_router = agents["battle_router"]
             st.session_state.battle_router_ready = True
+            st.session_state.llm_client = agents["llm_client"]
+            st.session_state.knowledge_loader = agents["knowledge_loader"]
+            st.session_state.content_agent = agents["content_agent"]
+            st.session_state.knowledge_agent = agents["knowledge_agent"]
+            st.session_state.objection_agent = agents["objection_agent"]
+            health = agents["llm_client"].check_health()
+            st.session_state.global_llm_status = health
+            st.session_state.llm_health = health
+            st.session_state.llm_real_ready = health["ok"]
         except Exception as e:
             st.session_state.battle_router = None
             st.session_state.battle_router_ready = False
             st.session_state.battle_router_error = str(e)
+            st.session_state.llm_client = None
+            st.session_state.knowledge_agent = None
+            st.session_state.content_agent = None
+            st.session_state.objection_agent = None
+            st.session_state.global_llm_status = default_global_llm_status(
+                f"初始化失败：{str(e)[:200]}"
+            )
+            st.session_state.llm_health = st.session_state.global_llm_status
+            st.session_state.llm_real_ready = False
+
+    # ---- 初始化自动触发引擎 ----
+    if "trigger_engine" not in st.session_state:
+        try:
+            from services.trigger_engine import get_trigger_engine
+            from core.event_bus import get_event_bus
+            event_bus = get_event_bus()
+            trigger_engine = get_trigger_engine(
+                llm_client=st.session_state.get("llm_client"),
+                event_bus=event_bus,
+                scheduler=st.session_state.get("workflow_scheduler"),
+            )
+            st.session_state.trigger_engine = trigger_engine
+            st.session_state.trigger_engine_ready = True
+        except Exception as e:
+            st.session_state.trigger_engine = None
+            st.session_state.trigger_engine_ready = False
+
+    # ---- 初始化Swarm状态 ----
+    if "swarm_state" not in st.session_state:
+        st.session_state.swarm_state = None
+    if "use_swarm_mode" not in st.session_state:
+        st.session_state.use_swarm_mode = False
 
 
 _init_session_state()
@@ -503,6 +586,12 @@ if not st.session_state.get("battle_router_ready", False):
         "BattleRouter 初始化失败，系统已回退到 Mock 模式",
         f"{err} — 请检查 API Key 配置（.env 文件）"
     )
+elif not st.session_state.get("global_llm_status", {}).get("ok", False):
+    health = st.session_state.get("global_llm_status", {})
+    render_mock_fallback_notice(
+        "BattleRouter 初始化成功，但真实 LLM 健康检查未通过",
+        health.get("error_summary", "请检查代理、网络和 API 配置"),
+    )
 
 
 # ============================================================
@@ -510,33 +599,58 @@ if not st.session_state.get("battle_router_ready", False):
 # ============================================================
 current_page = render_sidebar()
 
-# 根据当前页面渲染内容
-if current_page == "一键备战":
-    from ui.pages.battle_station import render_battle_station
+# 根据当前页面渲染内容（角色化路由）
+if current_page == "市场专员":
+    from ui.pages.role_marketing import render_role_marketing
 
-    render_battle_station()
+    render_role_marketing()
 
-elif current_page == "内容工厂":
-    from ui.pages.content_factory import render_content_factory
+elif current_page == "发朋友圈数字员工":
+    from ui.pages.moments_employee import render_moments_employee
 
-    render_content_factory()
+    render_moments_employee()
 
-elif current_page == "知识问答":
-    from ui.pages.knowledge_qa import render_knowledge_qa
+elif current_page == "销售支持":
+    from ui.pages.role_sales_support import render_role_sales_support
 
-    render_knowledge_qa()
+    render_role_sales_support()
 
-elif current_page == "异议模拟":
-    from ui.pages.objection_sim import render_objection_sim
+elif current_page == "话术培训师":
+    from ui.pages.role_trainer import render_role_trainer
 
-    render_objection_sim()
+    render_role_trainer()
 
-elif current_page == "海报/PPT":
-    from ui.pages.design_studio import render_design_studio
+elif current_page == "客户经理":
+    from ui.pages.role_account_mgr import render_role_account_mgr
 
-    render_design_studio()
+    render_role_account_mgr()
 
-elif current_page == "仪表盘":
-    from ui.pages.dashboard import render_dashboard
+elif current_page == "数据分析":
+    from ui.pages.role_analyst import render_role_analyst
 
-    render_dashboard()
+    render_role_analyst()
+
+elif current_page == "财务经理":
+    from ui.pages.role_finance import render_role_finance
+
+    render_role_finance()
+
+elif current_page == "行政助手":
+    from ui.pages.role_admin import render_role_admin
+
+    render_role_admin()
+
+elif current_page == "内容管理中心":
+    from ui.pages.admin.material_upload import render_material_upload
+
+    render_material_upload()
+
+elif current_page == "API网关":
+    from ui.pages.api_gateway import render_api_gateway
+
+    render_api_gateway()
+
+elif current_page == "Agent管理":
+    from ui.pages.agent_center import render_agent_center
+
+    render_agent_center()

@@ -53,3 +53,21 @@ assets/posters/*.png
 !assets/posters/1-3ksher-b2b-intro-poster.png
 !assets/posters/1-4ksher-service-trade-combined-poster.png
 !assets/posters/2-2ksher-philippines-b2c-poster.png
+
+# Production env files
+.env.production
+.env.*
+
+# Local databases
+*.db
+
+# Chroma temporary test vector stores
+data/chroma_test_*/
+
+# Runtime generated data directories
+data/uploads/
+data/customers/
+data/feedback/
+data/vector_db/
+data/models/
+data/workflow_logs.db

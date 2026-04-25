@@ -1,5 +1,20 @@
 # 开发日志
 
+## 2026-04-25
+
+### 项目收尾与复盘归档
+- 新增项目级复盘和交付归档文档：`docs/PROJECT_REVIEW_AND_DELIVERY.md`
+- 明确文档分工：
+  - 项目级复盘使用 `docs/PROJECT_REVIEW_AND_DELIVERY.md`
+  - 阶段性技术变更继续记录在 `DEVLOG.md`
+  - Moments 专项需求、设计、测试、交付和 Review 记录继续保留在 `docs/features/moments/`
+- 记录当前阶段结论：
+  - 黑客松交付完成
+  - MVP 阶段归档完成
+  - 远端提交完成
+  - 打包交付完成
+  - 生产上线未执行，需作为下一阶段任务
+
 ## 2026-04-24
 
 ### LLM 运行稳定性加固

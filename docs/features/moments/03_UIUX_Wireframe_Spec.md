@@ -73,7 +73,7 @@
 | 字段名称 | 字段 key | 控件类型 | 是否必填 | 可选值 | 默认值 | 校验规则 | 错误提示文案 | API 请求字段映射 |
 |---|---|---|---|---|---|---|---|---|
 | 内容类型 | `contentType` | Select | 是 | 产品解读、热点借势、客户案例 | 未选择 | 不能为空，必须来自预设选项 | 请选择内容类型 | `content_type`：`product_explain` / `trend_jacking` / `customer_case` |
-| 目标客户 | `targetCustomer` | Select | 是 | Amazon 卖家、Shopee 卖家、外贸 B2B | 未选择 | 不能为空，必须来自预设选项 | 请选择目标客户 | `target_customer`：`amazon_seller` / `shopee_seller` / `b2b_exporter` |
+| 目标客户 | `targetCustomer` | Select | 是 | 跨境电商卖家、货物贸易、服务贸易 | 未选择 | 不能为空，必须来自预设选项 | 请选择目标客户 | `target_customer`：`cross_border_ecommerce_seller` / `goods_trade` / `service_trade` |
 | 产品卖点 | `productPoints` | Checkbox / 多选 | 是 | 到账快、费率透明、合规安全 | 空 | 至少选择 1 项，最多选择 3 项 | 请至少选择 1 个产品卖点 | `product_points`：`fast_settlement` / `transparent_fee` / `compliance_safe` |
 | 文案风格 | `copyStyle` | Radio / Segmented control | 是 | 专业、轻松、销售感强 | 专业 | 不能为空，必须来自预设选项 | 请选择文案风格 | `copy_style`：`professional` / `casual` / `sales_driven` |
 | 补充说明 | `extraContext` | Textarea | 否 | 用户自由输入 | 空字符串 | 自动去除前后空格；最多 300 字 | 补充说明最多 300 字 | `extra_context` |
@@ -350,4 +350,3 @@ stateDiagram-v2
 - 包含 API 字段映射：明确前端字段到后端请求和响应字段的映射。
 - 包含组件拆分建议：明确组件职责、props、事件、状态和复用性。
 - 明确未决问题：对无法从上游文档确认的策略列出决策角色和阻塞程度。
-

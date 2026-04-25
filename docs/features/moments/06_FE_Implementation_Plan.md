@@ -141,7 +141,7 @@
 | 字段 key | UI 名称 | 控件类型 | 必填 | 默认值 | 可选值 | 校验规则 | 错误提示 | API 映射 |
 |---|---|---|---|---|---|---|---|---|
 | `content_type` | 内容类型 | `st.selectbox` | 是 | 空 / 请选择 | 产品解读、热点借势、客户案例 | 必须选择预设项 | 请选择内容类型 | `content_type` |
-| `target_customer` | 目标客户 | `st.selectbox` | 是 | 空 / 请选择 | Amazon 卖家、Shopee 卖家、外贸 B2B | 必须选择预设项 | 请选择目标客户 | `target_customer` |
+| `target_customer` | 目标客户 | `st.selectbox` | 是 | 空 / 请选择 | 跨境电商卖家、货物贸易、服务贸易 | 必须选择预设项 | 请选择目标客户 | `target_customer` |
 | `selling_points` | 产品卖点 | `st.multiselect` 或 checkbox 组 | 是 | 空列表 | 到账快、费率透明、合规安全 | 至少 1 项，最多 3 项 | 请至少选择 1 个产品卖点 | UI 别名，提交时映射到 `product_points` |
 | `tone` | 文案风格 | `st.radio` | 是 | 专业 | 专业、轻松、销售感强 | 必须选择预设项 | 请选择文案风格 | UI 别名，提交时映射到 `copy_style` |
 | `extra_context` | 补充说明 | `st.text_area` | 否 | 空字符串 | 自由输入 | 去除首尾空格，最多 300 字 | 补充说明最多 300 字 | `extra_context` |
@@ -154,9 +154,9 @@
 | 产品解读 | `product_explain` |
 | 热点借势 | `trend_jacking` |
 | 客户案例 | `customer_case` |
-| Amazon 卖家 | `amazon_seller` |
-| Shopee 卖家 | `shopee_seller` |
-| 外贸 B2B | `b2b_exporter` |
+| 跨境电商卖家 | `cross_border_ecommerce_seller` |
+| 货物贸易 | `goods_trade` |
+| 服务贸易 | `service_trade` |
 | 到账快 | `fast_settlement` |
 | 费率透明 | `transparent_fee` |
 | 合规安全 | `compliance_safe` |
@@ -233,7 +233,7 @@ stateDiagram-v2
 ```json
 {
   "content_type": "product_explain",
-  "target_customer": "amazon_seller",
+  "target_customer": "cross_border_ecommerce_seller",
   "product_points": ["fast_settlement", "compliance_safe"],
   "copy_style": "professional",
   "extra_context": "",

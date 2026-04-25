@@ -18,6 +18,7 @@ from ui.pages.moments_employee import (
     build_copy_button_html,
     build_feedback_payload,
     build_generate_payload,
+    build_regenerate_session_id,
     build_state_message,
     call_feedback_api,
     call_generate_api,
@@ -25,6 +26,7 @@ from ui.pages.moments_employee import (
     derive_compliance_state,
     derive_response_state,
     extract_api_message,
+    generate_moments_local_fallback,
     make_frontend_error_response,
     parse_generate_response,
     validate_moments_form,
@@ -36,7 +38,7 @@ def _valid_form():
     form.update(
         {
             "content_type": "产品解读",
-            "target_customer": "Amazon 卖家",
+            "target_customer": "跨境电商卖家",
             "selling_points": ["到账快", "合规安全"],
             "tone": "专业",
             "extra_context": "mock:success",
@@ -54,7 +56,7 @@ def _success_response(status="publishable"):
         "result": {
             "title": "到账快，合规安全的收款体验",
             "body": "这是一条朋友圈正文",
-            "forwarding_advice": "适合发给 Amazon 卖家",
+            "forwarding_advice": "适合发给跨境电商卖家",
             "compliance_tip": {
                 "status": status,
                 "message": "可发布参考",
@@ -105,7 +107,7 @@ def test_build_generate_payload_maps_ui_fields_to_api_fields():
     )
 
     assert payload["content_type"] == "product_explain"
-    assert payload["target_customer"] == "amazon_seller"
+    assert payload["target_customer"] == "cross_border_ecommerce_seller"
     assert payload["product_points"] == ["fast_settlement", "compliance_safe"]
     assert payload["copy_style"] == "professional"
     assert payload["extra_context"] == "mock:success"
@@ -207,9 +209,21 @@ def test_copy_button_html_contains_success_and_failure_messages():
     html = build_copy_button_html("朋友圈正文")
 
     assert "navigator.clipboard.writeText" in html
+    assert 'document.execCommand("copy")' in html
+    assert 'aria-label="朋友圈正文复制源"' in html
     assert "已复制" in html
     assert "复制失败，请手动选择正文复制" in html
     assert "朋友圈正文" in html
+
+
+def test_build_regenerate_session_id_keeps_base_and_adds_unique_suffix():
+    first = build_regenerate_session_id("moments_browser_session")
+    second = build_regenerate_session_id("moments_browser_session")
+
+    assert first.startswith("moments_browser_session_regen_")
+    assert second.startswith("moments_browser_session_regen_")
+    assert first != second
+    assert len(first) <= 128
 
 
 @patch("ui.pages.moments_employee.urllib.request.urlopen")
@@ -267,6 +281,45 @@ def test_call_generate_api_parses_rate_limit_http_error(mock_urlopen):
     assert response["status"] == "error"
     assert response["errors"][0]["field"] == "session_id"
     assert "请求过于频繁" in response["errors"][0]["message"]
+
+
+def test_generate_moments_local_fallback_returns_structured_mock_result():
+    payload = build_generate_payload(
+        _valid_form(),
+        session_id="sess_local_fallback",
+    )
+
+    response = generate_moments_local_fallback(payload)
+
+    assert response["success"] is True
+    assert response["status"] == "success"
+    assert response["result"]["title"]
+    assert response["result"]["body"]
+    assert response["fallback_used"] is False
+    assert response["quality"]["details"]["source"] == "streamlit_local_mock_fallback"
+
+
+@patch("ui.pages.moments_employee.urllib.request.urlopen")
+def test_call_generate_api_uses_local_fallback_when_endpoint_missing(mock_urlopen):
+    mock_http_error = urllib.error.HTTPError(
+        url="http://localhost:8000/api/moments/generate",
+        code=404,
+        msg="Not Found",
+        hdrs=None,
+        fp=MagicMock(),
+    )
+    mock_http_error.fp.read.return_value = b'{"detail":"Not Found"}'
+    mock_urlopen.side_effect = mock_http_error
+
+    response = call_generate_api(
+        build_generate_payload(_valid_form(), session_id="sess_missing_endpoint"),
+        timeout=1,
+    )
+
+    assert response["success"] is True
+    assert response["status"] == "success"
+    assert response["result"]["body"]
+    assert response["quality"]["details"]["source"] == "streamlit_local_mock_fallback"
 
 
 @patch("ui.pages.moments_employee.urllib.request.urlopen")
@@ -334,6 +387,15 @@ def test_moments_page_does_not_use_fixed_streamlit_session_id():
     source = Path("ui/pages/moments_employee.py").read_text(encoding="utf-8")
 
     assert "streamlit_session" not in source
+
+
+def test_moments_page_shows_regenerate_success_notice_and_generation_meta():
+    source = Path("ui/pages/moments_employee.py").read_text(encoding="utf-8")
+
+    assert "moments_generation_notice" in source
+    assert "已生成新版本" in source
+    assert "生成编号：" in source
+    assert "生成时间：" in source
 
 
 def test_streamlit_page_renders_core_mobile_content():

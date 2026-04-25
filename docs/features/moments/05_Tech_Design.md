@@ -70,7 +70,7 @@ Streamlit UI
 ```python
 moments_form = {
     "content_type": "product_explain",
-    "target_customer": "amazon_seller",
+    "target_customer": "cross_border_ecommerce_seller",
     "product_points": ["fast_settlement", "compliance_safe"],
     "copy_style": "professional",
     "extra_context": "",
@@ -100,7 +100,7 @@ moments_form = {
 ```json
 {
   "content_type": "product_explain",
-  "target_customer": "amazon_seller",
+  "target_customer": "cross_border_ecommerce_seller",
   "product_points": ["fast_settlement", "compliance_safe"],
   "copy_style": "professional",
   "extra_context": "客户关注到账和合规",

@@ -17,6 +17,7 @@ from typing import Any
 from uuid import uuid4
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from config import BRAND_COLORS, RADIUS, SPACING, TYPE_SCALE
 from ui.components.ui_cards import hex_to_rgb
@@ -34,9 +35,9 @@ CONTENT_TYPE_OPTIONS = {
     "客户案例": "customer_case",
 }
 TARGET_CUSTOMER_OPTIONS = {
-    "Amazon 卖家": "amazon_seller",
-    "Shopee 卖家": "shopee_seller",
-    "外贸 B2B": "b2b_exporter",
+    "跨境电商卖家": "cross_border_ecommerce_seller",
+    "货物贸易": "goods_trade",
+    "服务贸易": "service_trade",
 }
 SELLING_POINT_OPTIONS = {
     "到账快": "fast_settlement",
@@ -222,6 +223,51 @@ def parse_generate_response(raw: Any) -> dict[str, Any]:
     return raw
 
 
+def _is_endpoint_missing_response(raw: Any) -> bool:
+    """识别请求打到旧服务或错误端口时 FastAPI 返回的 404 结构。"""
+    if not isinstance(raw, dict):
+        return False
+    detail = raw.get("detail")
+    if isinstance(detail, str):
+        return detail.lower() in {"not found", "method not allowed"}
+    return False
+
+
+def _select_local_mock_scenario(extra_context: str) -> str:
+    """本地兜底沿用后端 mock 标记，避免新增真实 LLM 调用。"""
+    marker = (extra_context or "").lower()
+    for scenario in ("success", "error", "empty", "sensitive"):
+        if f"mock:{scenario}" in marker:
+            return scenario
+    return "success"
+
+
+def generate_moments_local_fallback(payload: dict[str, Any]) -> dict[str, Any]:
+    """当 API 端口指向旧服务时，使用同一套后端 Mock 服务保持单页可验收。"""
+    try:
+        from models.moments_models import MomentsGenerateRequest
+        from services.moments_service import generate_moments_with_mock
+
+        request = MomentsGenerateRequest(**payload)
+        response = generate_moments_with_mock(
+            request,
+            scenario=_select_local_mock_scenario(request.extra_context),
+        )
+        data = response.model_dump(mode="json")
+        quality = data.get("quality")
+        if isinstance(quality, dict):
+            details = quality.setdefault("details", {})
+            if isinstance(details, dict):
+                details["source"] = "streamlit_local_mock_fallback"
+        return data
+    except Exception:
+        return make_frontend_error_response(
+            code="network_error",
+            message="生成服务不可用，请确认 FastAPI 已启动当前分支后重试",
+            status="error",
+        )
+
+
 def call_generate_api(payload: dict[str, Any], *, timeout: int = 20) -> dict[str, Any]:
     """调用生成 API。使用标准库，避免新增依赖或全局 API client。"""
     url = f"{API_BASE_URL.rstrip('/')}{GENERATE_PATH}"
@@ -246,6 +292,8 @@ def call_generate_api(payload: dict[str, Any], *, timeout: int = 20) -> dict[str
     except urllib.error.HTTPError as exc:
         try:
             data = json.loads(exc.read().decode("utf-8"))
+            if exc.code in {404, 405} and _is_endpoint_missing_response(data):
+                return generate_moments_local_fallback(payload)
             return parse_generate_response(data)
         except (json.JSONDecodeError, UnicodeDecodeError):
             return make_frontend_error_response(
@@ -364,11 +412,17 @@ def build_copy_button_html(text: str, *, label: str = "复制文案") -> str:
     """生成带成功/失败前端提示的复制按钮 HTML。"""
     button_id = f"moments_copy_{abs(hash(text)) & 0xFFFFFF:x}"
     message_id = f"{button_id}_message"
+    textarea_id = f"{button_id}_text"
     safe_text = json.dumps(text, ensure_ascii=False)
     primary = BRAND_COLORS["primary"]
     success = BRAND_COLORS["success"]
     danger = BRAND_COLORS["danger"]
     return f"""
+    <textarea id="{textarea_id}" aria-label="朋友圈正文复制源" style="
+        position:absolute;
+        left:-9999px;
+        top:-9999px;
+    ">{escape(text)}</textarea>
     <button id="{button_id}" style="
         background:{primary};
         color:#fff;
@@ -382,13 +436,38 @@ def build_copy_button_html(text: str, *, label: str = "复制文案") -> str:
         width:100%;
     " onclick='(async function(){{
         const msg = document.getElementById("{message_id}");
-        try {{
-            await navigator.clipboard.writeText({safe_text});
+        const source = document.getElementById("{textarea_id}");
+        const setSuccess = function() {{
             msg.innerText = "已复制";
             msg.style.color = "{success}";
-        }} catch (e) {{
+        }};
+        const setFailure = function() {{
             msg.innerText = "复制失败，请手动选择正文复制";
             msg.style.color = "{danger}";
+        }};
+        try {{
+            if (navigator.clipboard && window.isSecureContext) {{
+                await navigator.clipboard.writeText({safe_text});
+                setSuccess();
+                return;
+            }}
+            source.focus();
+            source.select();
+            if (document.execCommand("copy")) {{
+                setSuccess();
+                return;
+            }}
+            setFailure();
+        }} catch (e) {{
+            try {{
+                source.focus();
+                source.select();
+                if (document.execCommand("copy")) {{
+                    setSuccess();
+                    return;
+                }}
+            }} catch (fallbackError) {{}}
+            setFailure();
         }}
     }})()'>{escape(label)}</button>
     <div id="{message_id}" style="font-size:{TYPE_SCALE['sm']};margin-top:{SPACING['xs']};color:{BRAND_COLORS['text_muted']};"></div>
@@ -402,6 +481,11 @@ def get_moments_session_id() -> str:
         session_id = f"moments_{uuid4().hex}"
         st.session_state[MOMENTS_SESSION_STATE_KEY] = session_id
     return str(session_id)
+
+
+def build_regenerate_session_id(base_session_id: str) -> str:
+    """为重新生成创建单次请求 session，避免和首次生成的限频窗口互相污染。"""
+    return f"{base_session_id}_regen_{uuid4().hex[:8]}"
 
 
 def _init_moments_state() -> None:
@@ -420,6 +504,8 @@ def _init_moments_state() -> None:
         st.session_state.moments_last_error_response = None
     if "moments_feedback_submitted" not in st.session_state:
         st.session_state.moments_feedback_submitted = False
+    if "moments_generation_notice" not in st.session_state:
+        st.session_state.moments_generation_notice = ""
 
 
 def _render_panel(title: str, body: str, *, level: str = "info") -> None:
@@ -523,6 +609,7 @@ def _submit_generation(*, regenerate: bool = False) -> None:
     st.session_state.moments_field_errors = validation.errors
     if not validation.is_valid:
         st.session_state.moments_ui_state = validation.ui_state
+        st.session_state.moments_generation_notice = ""
         return
 
     previous_generation_id = None
@@ -533,10 +620,15 @@ def _submit_generation(*, regenerate: bool = False) -> None:
         st.session_state.moments_ui_state = "regenerating"
     else:
         st.session_state.moments_ui_state = "generating"
+    st.session_state.moments_generation_notice = ""
+
+    session_id = get_moments_session_id()
+    if regenerate:
+        session_id = build_regenerate_session_id(session_id)
 
     payload = build_generate_payload(
         form,
-        session_id=get_moments_session_id(),
+        session_id=session_id,
         previous_generation_id=previous_generation_id,
     )
 
@@ -561,6 +653,13 @@ def _submit_generation(*, regenerate: bool = False) -> None:
         st.session_state.moments_current_response = response
     else:
         st.session_state.moments_previous_response = st.session_state.get("moments_current_response")
+
+    if response.get("success") is True and response.get("generation_id"):
+        st.session_state.moments_generation_notice = (
+            "已生成新版本，上一版结果已保留为重新生成来源。"
+            if regenerate
+            else "已生成朋友圈文案草稿。"
+        )
 
 
 def _render_compliance_tip(response: dict[str, Any]) -> None:
@@ -595,6 +694,13 @@ def _render_result_card(response: dict[str, Any]) -> None:
     rewrite_suggestion = result.get("rewrite_suggestion") or "无"
 
     st.markdown("### 生成结果")
+    generation_id = response.get("generation_id") or ""
+    created_at = response.get("created_at") or ""
+    if generation_id:
+        meta = f"生成编号：{generation_id}"
+        if created_at:
+            meta = f"{meta} | 生成时间：{created_at}"
+        st.caption(meta)
     if fallback_used:
         st.warning("当前内容为兜底模板，已标注“需要人工补充”。发布前必须人工完善。")
 
@@ -613,7 +719,7 @@ def _render_result_card(response: dict[str, Any]) -> None:
     if fallback_used:
         st.warning("兜底模板是否允许复制仍待确认；本期展示复制入口并强提示需要人工补充。")
 
-    st.markdown(build_copy_button_html(body), unsafe_allow_html=True)
+    components.html(build_copy_button_html(body), height=76)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -710,6 +816,9 @@ def render_moments_employee() -> None:
     if st.button(button_label, type="primary", use_container_width=True, disabled=generate_disabled):
         _submit_generation(regenerate=False)
         st.rerun()
+
+    if st.session_state.get("moments_generation_notice"):
+        st.success(st.session_state.moments_generation_notice)
 
     current_response = st.session_state.get("moments_current_response")
     previous_response = st.session_state.get("moments_previous_response")

@@ -4,7 +4,7 @@
 > 记录日期：2026-04-25  
 > 记录角色：项目助理 Bot  
 > 功能名称：发朋友圈数字员工 / 朋友圈转发助手  
-> 当前结论：产品负责人最终门禁通过；允许 MVP 演示与阶段归档
+> 当前结论：PR 已合并；MVP 阶段交付完成；允许演示、归档与后续上线准备讨论
 
 ---
 
@@ -35,7 +35,7 @@
 - 素材库。
 - 数据分析闭环。
 - 多账号系统。
-- 真实 LLM 线上调用默认不启用。
+- 默认真实 AI 生成链路已启用；Mock QA 路径保留。
 - 海报生成。
 - 配图生成。
 - 短视频脚本。
@@ -55,6 +55,7 @@
 | QA 响应式验收 | 通过 | M-01~M-10 响应式辅助通过；M-08 / M-09 已补充浏览器自动验收 |
 | QA 手机端人工验收 | 通过 | Ian 已使用手机端访问局域网页面并确认基本合格，生成、复制、重新生成等核心交互无阻塞问题 |
 | 产品最终门禁 | 通过 | `14_Product_Final_Gate.md` 已允许 MVP 演示与阶段归档 |
+| PR Review / Merge | 已完成 | PR #1 已合并到 `main`；merge commit：`10183c3eaffc7c1cc70e522d62d928e3b07fb249` |
 
 ## 4. 自动化回归记录
 
@@ -145,7 +146,20 @@ tests/test_moments_frontend.py -v
 
 推荐顺序：
 
-1. 归档本轮 MVP。
-2. 如需要提交代码，由工程师准备精确提交清单，不使用 `git add .`。
-3. 如需要演示，默认使用真实 AI；如需稳定复现测试场景，可设置 `MOMENTS_AI_MODE=mock`。
-4. 上线前补充真实 AI 质量验收、成本监控和限流策略。
+1. `ARCH-AI-GOV-01`：真实 AI 质量、成本、限流和生产治理。
+2. `DEPLOY-MOMENTS-01`：部署、访问控制、运行监控和启动说明。
+3. `WORKTREE-CLEANUP-01`：历史工作区清理与提交边界整理。
+4. `MOMENTS-V2-01`：真实微信、素材库、海报、数据分析等后续能力重新评审。
+
+## 10. PR 合并记录
+
+| 项目 | 内容 |
+|---|---|
+| PR | `https://github.com/yingzhengzhang06-sys/ksher-agentai-hackathon/pull/1` |
+| PR 标题 | `feat(moments): complete moments employee MVP` |
+| Base | `main` |
+| Head | `feature/moments-create` |
+| 状态 | `MERGED` |
+| 合并时间 | `2026-04-25 13:50:37`（北京时间） |
+| Merge commit | `10183c3eaffc7c1cc70e522d62d928e3b07fb249` |
+| 阶段结论 | 发朋友圈数字员工 MVP 已正式合并进入主分支，可作为阶段交付版本 |

@@ -2,7 +2,7 @@
 
 > 文档版本：v0.1
 > 更新时间：2026-04-25
-> 当前阶段：最终提交准备与阶段归档完成；等待人工精确提交
+> 当前阶段：PR Review / 最终门禁完成；等待人工 Review / Merge
 > 事实源：
 > - `docs/features/moments/07_Engineering_Subtasks.md`
 > - `docs/features/moments/07_Test_Cases.md`
@@ -32,6 +32,7 @@
 | 阶段归档 | 已完成 | `10_Release_Record.md`、`11_Retrospective.md`、`17_Final_Submission_Checklist.md` 已更新 |
 | 提交准备 | 已完成 | 已生成精确提交清单，禁止 `git add .`，等待人工确认后提交 |
 | 架构复核 | 通过 | `13_Architecture_Review.md` 已确认无 P0 / P1 阻塞，允许进入产品负责人门禁 |
+| PR Review | 已创建 | PR #1：`https://github.com/yingzhengzhang06-sys/ksher-agentai-hackathon/pull/1`，当前进入人工 Review / Merge 讨论 |
 | 下一阶段指令 | 已生成 | `12_Next_Phase_Instructions.md` 已明确 QA、工程师、架构师、产品负责人自动流转规则 |
 
 ---
@@ -64,7 +65,7 @@
 | 4.2 | QA-MOBILE-FINAL-01 | 真机补充验收执行包 | QA 测试工程师 / Ian | `12_Next_Phase_Instructions.md` | M-08 / M-09 结果、缺陷编号、上线建议 | 已完成：手机端基本合格 |
 | 5 | ARCH-REVIEW-01 | 验收后架构复核 | 架构师 | QA 结果、回归结果 | 上线前架构意见 | 已完成 |
 | 6 | PM-GATE-01 | 产品最终门禁 | 产品负责人 | QA 结果、架构意见 | 最终门禁结论 | 已完成 |
-| 7 | ARCH-AI-REAL-01 | 真实 LLM 接入设计与实现 | 架构师 / AI 工程师 | 产品授权、密钥管理方案 | Mock/真实切换方案和测试 | 已完成默认真实 AI 适配和本地真实 AI smoke test；生产 / 演示启用待授权 |
+| 7 | ARCH-AI-GOV-01 | 真实 AI 质量、成本、限流和生产治理 | 架构师 / AI 工程师 | 产品授权、密钥管理方案、真实 AI smoke test 记录 | 质量抽样、成本监控、限流策略和运行监控方案 | 当前默认真实 AI 已可用；生产 / 演示治理待后续任务 |
 
 ---
 
@@ -123,7 +124,7 @@ QA 执行 M-01 至 M-10 后，应在 `07_Test_Cases.md` 中追加结果，并至
 |---|---|---|
 | `rate_limited` 错误码 | MVP 阶段暂不新增，继续验收 HTTP 429 + `unknown_error` | 否 |
 | 限频阈值 | 同一 `session_id` 10 秒内最多 1 次生成请求 | 否 |
-| 真实 LLM 接入 | 本轮不接入真实密钥和线上调用，后续单独任务 | 否 |
+| 真实 AI 生产治理 | 当前已完成默认真实 AI 调用链路；生产质量、成本、限流和运行监控后续单独任务 | 否 |
 | 移动端验收 | 人工验收仍是上线前门禁；Chrome headless 仅作辅助 | 是，需 QA 执行 |
 
 ---

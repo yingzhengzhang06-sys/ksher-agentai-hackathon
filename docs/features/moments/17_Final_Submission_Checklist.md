@@ -88,6 +88,9 @@ docs/features/moments/14_Product_Final_Gate.md
 docs/features/moments/15_Target_Customer_Taxonomy_Update.md
 docs/features/moments/16_Real_AI_Integration_Record.md
 docs/features/moments/17_Final_Submission_Checklist.md
+docs/features/moments/18_Delivery_Note.md
+docs/features/moments/19_Final_Review_Instructions.md
+docs/features/moments/20_Final_Review_Record.md
 ```
 
 ### 3.4 协作机制与项目助理脚本

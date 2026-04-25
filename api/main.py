@@ -332,6 +332,7 @@ def generate_moments(payload: dict = Body(...)):
             response = generate_moments_with_llm_client(
                 request,
                 get_moments_llm_client(),
+                max_retries=0,
             )
         except Exception as exc:
             def failed_ai_call(_system_prompt: str, _user_prompt: str) -> str:

@@ -141,6 +141,11 @@ BATTLEFIELD_OBJECTIONS = {
 }
 
 
+def _is_mock_mode() -> bool:
+    """判断是否为 mock 模式（无真实 Agent 可用时回退）"""
+    return not st.session_state.get("battle_router_ready", False)
+
+
 def _get_all_objections() -> list[dict]:
     """获取所有异议列表（不分战场）"""
     all_objs = []
@@ -302,12 +307,43 @@ def _render_all_mode():
             st.markdown(f"**数据回应**：{obj['data_response'][:100]}...")
 
 
+def _mock_practice_result(user_objection: str) -> dict:
+    """生成 mock 练习结果（无真实 Agent 时使用）"""
+    return {
+        "objection": user_objection,
+        "analysis": (
+            "这个异议的核心是**价格比较**。客户没有算总账，"
+            "只看到了表面费率差异。需要引导客户关注综合成本和附加价值。"
+        ),
+        "direct_response": (
+            "理解您的顾虑。表面上看我们的费率确实比银行高一些，"
+            "但如果您算上中间行扣费、汇率差和资金占用成本，"
+            "我们的综合成本实际上更低。我可以帮您算一笔详细的账。"
+        ),
+        "empathy_response": (
+            "完全理解，控制成本是每家企业都非常重视的。"
+            "如果我是您，也会仔细比较各家的费用。"
+            "不如我们先算一下综合成本，看看实际情况如何？"
+        ),
+        "data_response": (
+            "根据我们服务的500+客户数据，使用 Ksher 后平均综合成本降低35%，"
+            "主要节省来自：①无中间行扣费 ②更优汇率 ③更快到账减少资金占用。"
+        ),
+        "tips": (
+            " **训练要点**：\n"
+            "1. 不要直接反驳客户的价格观点\n"
+            "2. 引导客户从\"表面费率\"转向\"综合成本\"\n"
+            "3. 用具体数字说话，增强说服力\n"
+            "4. 最后给出一个行动号召（算一笔账/看一个案例）"
+        ),
+    }
+
+
 def _render_practice_mode():
     """自由练习模式"""
     st.markdown("#### 自由练习")
     st.markdown(
-        "输入你遇到的真实客户异议，AI 会帮你分析并生成3种应对策略。\n\n"
-        "（真实模式就绪后启用，当前展示示例）"
+        "输入你遇到的真实客户异议，AI 会帮你分析并生成3种应对策略。"
     )
 
     user_objection = st.text_area(
@@ -323,35 +359,41 @@ def _render_practice_mode():
             return
 
         with st.spinner("AI 正在分析异议并生成应对策略..."):
-            # Mock 分析结果
-            st.session_state.obj_practice_result = {
-                "objection": user_objection,
-                "analysis": (
-                    f"这个异议的核心是**价格比较**。客户没有算总账，"
-                    f"只看到了表面费率差异。需要引导客户关注综合成本和附加价值。"
-                ),
-                "direct_response": (
-                    f"理解您的顾虑。表面上看我们的费率确实比银行高一些，"
-                    f"但如果您算上中间行扣费、汇率差和资金占用成本，"
-                    f"我们的综合成本实际上更低。我可以帮您算一笔详细的账。"
-                ),
-                "empathy_response": (
-                    f"完全理解，控制成本是每家企业都非常重视的。"
-                    f"如果我是您，也会仔细比较各家的费用。"
-                    f"不如我们先算一下综合成本，看看实际情况如何？"
-                ),
-                "data_response": (
-                    f"根据我们服务的500+客户数据，使用 Ksher 后平均综合成本降低35%，"
-                    f"主要节省来自：①无中间行扣费 ②更优汇率 ③更快到账减少资金占用。"
-                ),
-                "tips": (
-                    " **训练要点**：\n"
-                    "1. 不要直接反驳客户的价格观点\n"
-                    "2. 引导客户从\"表面费率\"转向\"综合成本\"\n"
-                    "3. 用具体数字说话，增强说服力\n"
-                    "4. 最后给出一个行动号召（算一笔账/看一个案例）"
-                ),
-            }
+            if not _is_mock_mode():
+                # ---- 真实模式：调用 ObjectionAgent ----
+                try:
+                    agent = st.session_state.get("objection_agent")
+                    context = {
+                        "company": "未指定",
+                        "industry": "",
+                        "target_country": "",
+                        "monthly_volume": 0,
+                        "current_channel": "",
+                        "pain_points": [user_objection],
+                        "battlefield": "education",
+                    }
+                    resp = agent.generate(context)
+                    first = resp["top_objections"][0]
+                    st.session_state.obj_practice_result = {
+                        "objection": user_objection,
+                        "analysis": resp.get("battlefield_tips", ""),
+                        "direct_response": first["direct_response"],
+                        "empathy_response": first["empathy_response"],
+                        "data_response": first["data_response"],
+                        "tips": (
+                            " **训练要点**：\n"
+                            "1. 不要直接反驳客户的价格观点\n"
+                            "2. 引导客户从\"表面费率\"转向\"综合成本\"\n"
+                            "3. 用具体数字说话，增强说服力\n"
+                            "4. 最后给出一个行动号召（算一笔账/看一个案例）"
+                        ),
+                    }
+                except Exception:
+                    # 真实模式调用失败，回退到 mock
+                    st.session_state.obj_practice_result = _mock_practice_result(user_objection)
+            else:
+                # ---- Mock 模式 ----
+                st.session_state.obj_practice_result = _mock_practice_result(user_objection)
 
     result = st.session_state.get("obj_practice_result")
     if result:

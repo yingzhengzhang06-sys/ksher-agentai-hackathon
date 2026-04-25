@@ -15,34 +15,51 @@ load_dotenv()
 KIMI_API_KEY = os.getenv("KIMI_API_KEY", "")
 KIMI_BASE_URL = os.getenv("KIMI_BASE_URL", "https://api.moonshot.cn/v1")
 KIMI_MODEL = os.getenv("MODEL_NAME_KIMI", "kimi-k2.5")
+KIMI_K26_MODEL = os.getenv("MODEL_NAME_KIMI_K26", "kimi-k2.6")
 
 # Claude API（精准型Agent）— 通过 Cherry AI 第三方平台
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 ANTHROPIC_BASE_URL = os.getenv("ANTHROPIC_BASE_URL", "https://open.cherryin.ai/v1")
 ANTHROPIC_MODEL = os.getenv("MODEL_NAME_SONNET", "anthropic/claude-sonnet-4.6")
 
+# MiniMax API（通识型Agent：知识问答等通用场景）
+MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
+MINIMAX_BASE_URL = os.getenv("MINIMAX_BASE_URL", "https://api.minimax.chat/v1")
+MINIMAX_MODEL = os.getenv("MODEL_NAME_MINIMAX", "MiniMax-Text-01")
+
 # ==========================================
-# Agent → 模型映射（核心路由表）
+# Agent → 模型映射（核心路由表，与 llm_client.py 保持一致）
 # ==========================================
+# 注意：完整映射在 services/llm_client.py 中
+# 此处仅保留核心7个Agent的映射，供兼容性使用
 AGENT_MODEL_MAP = {
-    "speech": "kimi",       # 话术 → 创意型
-    "content": "kimi",      # 内容 → 创意型
-    "design": "kimi",       # 设计 → 创意型
-    "objection": "kimi",    # 异议 → 创意型
-    "cost": "sonnet",       # 成本 → 精准型
-    "proposal": "sonnet",   # 方案 → 精准型
-    "knowledge": "sonnet",  # 知识 → 精准型
+    "speech": "kimi",
+    "content": "kimi",
+    "design": "kimi",
+    "objection": "kimi",
+    "cost": "sonnet",
+    "proposal": "sonnet",
+    "knowledge": "glm",  # GLM-5.1 适合知识问答
 }
 
-# Agent 温度参数
+# ==========================================
+# Agent 温度参数（核心7个Agent）
+# ==========================================
 AGENT_TEMPERATURE = {
-    "speech": 0.7,
-    "content": 0.8,
-    "design": 0.6,
-    "objection": 0.7,
-    "cost": 0.3,
-    "proposal": 0.5,
-    "knowledge": 0.3,
+    "speech": 0.7,      # 话术 → 创意型
+    "content": 0.8,     # 内容 → 创意型
+    "design": 0.6,      # 设计 → 创意型
+    "objection": 0.7,   # 异议 → 创意型
+    "cost": 0.3,        # 成本 → 精准型
+    "proposal": 0.5,    # 方案 → 精准型
+    "knowledge": 0.5,   # 知识 → GLM-5.1（精准型）
+    # K2.6 专属Agent
+    "swarm_decomposer": 0.3,   # 任务拆解 → 精准型（需要结构化输出）
+    "swarm_quality": 0.2,      # 质量检查 → 最精准
+    "ppt_builder": 0.5,        # PPT生成 → 平衡型
+    "data_agent": 0.3,         # 数据分析 → 精准型
+    "skill_learner": 0.5,      # 技能学习 → 平衡型
+    "trigger_agent": 0.3,      # 触发器 → 精准型
 }
 
 # ==========================================
@@ -52,6 +69,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 KNOWLEDGE_DIR = os.path.join(BASE_DIR, "knowledge")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+MATERIALS_DIR = os.path.join(ASSETS_DIR, "materials")
+
+# ==========================================
+# 素材上传系统配置（当前阶段：产品设计）
+# ==========================================
+ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "ksher2026")
+MATERIALS_DB_PATH = os.path.join(DATA_DIR, "materials.db")
+MATERIALS_MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MATERIALS_ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg"]
+MATERIALS_THUMB_MAX_WIDTH = 400
+MATERIALS_THUMB_QUALITY = 85
 
 # ==========================================
 # 外部知识库源（动态引用，无需复制到项目目录）
@@ -90,6 +118,117 @@ BRAND_COLORS = {
     "warning": "#FFB800",
     "danger": "#E83E4C",
     "info": "#3B82F6",
+}
+
+# ==========================================
+# 设计令牌（Design Tokens）— 统一字号/间距/圆角
+# ==========================================
+TYPE_SCALE = {
+    "xs":      "0.7rem",    # badge、标签、辅助信息
+    "sm":      "0.75rem",   # 表头、caption、时间戳
+    "base":    "0.85rem",   # 正文、表格行、列表项
+    "md":      "0.95rem",   # 副标题、强调文本
+    "lg":      "1.1rem",    # 小节标题
+    "xl":      "1.5rem",    # 页面标题数字
+    "display": "2.5rem",    # 大号评分/指标
+}
+
+SPACING = {
+    "xs":  "0.25rem",   # 4px
+    "sm":  "0.5rem",    # 8px
+    "md":  "1rem",      # 16px
+    "lg":  "1.5rem",    # 24px
+    "xl":  "2rem",      # 32px
+}
+
+RADIUS = {
+    "sm":  "0.25rem",   # badge、小标签
+    "md":  "0.5rem",    # 卡片、按钮、输入框
+    "lg":  "0.75rem",   # 大容器、弹窗
+}
+
+# ==========================================
+# 状态 → 颜色 映射（统一使用，避免各文件重复内联）
+# ==========================================
+STATUS_COLOR_MAP = {
+    # 客户阶段
+    "customer_stage": {
+        "初次接触": BRAND_COLORS["text_secondary"],
+        "已报价":    BRAND_COLORS["info"],
+        "试用中":    BRAND_COLORS["warning"],
+        "已签约":    BRAND_COLORS["success"],
+        "已流失":    BRAND_COLORS["danger"],
+    },
+    # 重要性/优先级
+    "priority": {
+        "高": BRAND_COLORS["danger"],
+        "中": BRAND_COLORS["warning"],
+        "低": BRAND_COLORS["info"],
+        "必需": BRAND_COLORS["primary"],
+        "可选": BRAND_COLORS["text_secondary"],
+    },
+    # 置信度
+    "confidence": {
+        "高": BRAND_COLORS["success"],
+        "中": BRAND_COLORS["warning"],
+        "低": BRAND_COLORS["info"],
+    },
+    # 紧急度
+    "urgency": {
+        "高": BRAND_COLORS["primary"],
+        "中": BRAND_COLORS["warning"],
+        "低": BRAND_COLORS["info"],
+    },
+}
+
+# ==========================================
+# 工作流引擎配置
+# ==========================================
+WORKFLOW_CONFIG = {
+    "content_lifecycle": {
+        "initial_state": "draft",
+        "auto_submit_to_review": True,  # 生成后自动进入 review
+        "review_timeout_hours": 48,     # 审批超时时间
+    },
+    "scheduler": {
+        "daily_trigger": "06:00",       # 日度工作流触发时间
+        "weekly_alignment_day": "Mon",  # 周度对齐日
+        "weekly_alignment_time": "09:00",
+        "weekly_review_day": "Fri",     # 周末复盘日
+        "weekly_review_time": "17:00",
+    },
+}
+
+# ==========================================
+# Celery + Redis 配置
+# ==========================================
+CELERY_CONFIG = {
+    "broker_url": os.getenv("CELERY_BROKER", "redis://localhost:6379/1"),
+    "result_backend": os.getenv("CELERY_BACKEND", "redis://localhost:6379/2"),
+    "task_track_started": True,
+    "task_time_limit": 600,  # 10 分钟
+    "task_soft_time_limit": 540,  # 9 分钟
+    "worker_prefetch_multiplier": 1,
+    "worker_max_tasks_per_child": 50,
+}
+
+REDIS_CONFIG = {
+    "host": os.getenv("REDIS_HOST", "localhost"),
+    "port": int(os.getenv("REDIS_PORT", "6379")),
+    "db": int(os.getenv("REDIS_DB", "0")),
+    "password": os.getenv("REDIS_PASSWORD", ""),
+    "url": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+}
+
+SCHEDULER_CONFIG = {
+    "timezone": "Asia/Shanghai",
+    "jobs": [
+        {"id": "morning_intelligence", "cron": "0 6 * * *", "name": "晨间情报扫描"},
+        {"id": "content_execution", "cron": "0 10 * * *", "name": "内容执行"},
+        {"id": "evening_monitor", "cron": "0 18 * * *", "name": "晚间数据监控"},
+        {"id": "weekly_alignment", "cron": "0 9 * * 1", "name": "周度对齐"},
+        {"id": "weekly_review", "cron": "0 17 * * 5", "name": "周末复盘"},
+    ],
 }
 
 # ==========================================
@@ -132,16 +271,41 @@ CHANNEL_BATTLEFIELD_MAP = {
     "bank": "increment",
     "银行": "increment",
 
-    # 存量战场（从竞品抢客户）
+    # 存量战场（从竞品抢客户）— 第三方跨境支付平台
     "PingPong": "stock",
     "pingpong": "stock",
+    "万里汇（WorldFirst）": "stock",
     "万里汇": "stock",
     "WorldFirst": "stock",
     "XTransfer": "stock",
     "xtransfer": "stock",
+    "连连支付（LianLian）": "stock",
     "连连支付": "stock",
+    "光子易（PhotonPay）": "stock",
     "光子易": "stock",
+    "空中云汇（Airwallex）": "stock",
     "空中云汇": "stock",
+    "派安盈（Payoneer）": "stock",
+    "Payoneer": "stock",
+    "收款易（Skyee）": "stock",
+    "Skyee": "stock",
+    "iPayLinks": "stock",
+    "PanPay": "stock",
+    "寻汇（Sunrate）": "stock",
+    "Sunrate": "stock",
+    "结行国际（CoGoLinks）": "stock",
+    "CoGoLinks": "stock",
+    "义支付（YiwuPay）": "stock",
+    "Qbit（量子跨境）": "stock",
+    "Qbit": "stock",
+    "易宝支付（YeePay）": "stock",
+    "珊瑚跨境（Coralglobal）": "stock",
+    "拓拓（TikStar Pay）": "stock",
+    "PayPal": "stock",
+    "Stripe": "stock",
+    "Wise（TransferWise）": "stock",
+    "Wise": "stock",
+    "dLocal": "stock",
 
     # 教育战场（新客户/未选定）
     "未选定": "education",
@@ -155,7 +319,8 @@ CHANNEL_BATTLEFIELD_MAP = {
 INDUSTRY_OPTIONS = {
     "b2c": "跨境电商（B2C）",
     "b2b": "跨境货贸（B2B）",
-    "service": "服务贸易",
+    "service": "服务贸易（B2B）",
+    "b2s": "1688直采（B2S）",
 }
 
 # 国家选项
@@ -169,16 +334,57 @@ COUNTRY_OPTIONS = {
     "europe": "欧洲（EUR）",
 }
 
-# 当前渠道选项
+# 当前渠道选项（全量第三方跨境收款平台）
 CHANNEL_OPTIONS = [
+    # —— 银行渠道 ——
     "银行电汇",
+    # —— 第三方跨境支付平台 ——
     "PingPong",
-    "万里汇",
+    "万里汇（WorldFirst）",
     "XTransfer",
-    "连连支付",
-    "光子易",
-    "空中云汇",
+    "连连支付（LianLian）",
+    "光子易（PhotonPay）",
+    "空中云汇（Airwallex）",
+    "派安盈（Payoneer）",
+    "收款易（Skyee）",
+    "iPayLinks",
+    "PanPay",
+    "寻汇（Sunrate）",
+    "结行国际（CoGoLinks）",
+    "义支付（YiwuPay）",
+    "Qbit（量子跨境）",
+    "易宝支付（YeePay）",
+    "珊瑚跨境（Coralglobal）",
+    "拓拓（TikStar Pay）",
+    # —— 国际支付平台 ——
+    "PayPal",
+    "Stripe",
+    "Wise（TransferWise）",
+    "dLocal",
+    # —— 未选定 ——
     "未选定",
+]
+
+# 客户阶段选项
+CUSTOMER_STAGE_OPTIONS = [
+    "初次接触",
+    "已报价",
+    "试用中",
+    "已签约",
+    "已流失",
+]
+
+# 企业规模选项
+COMPANY_SIZE_OPTIONS = [
+    "1-10人",
+    "11-50人",
+    "51-200人",
+    "200人以上",
+]
+
+# 币种选项
+CURRENCY_OPTIONS = [
+    "THB", "MYR", "PHP", "IDR", "VND", "HKD", "EUR", "USD", "CNY",
 ]
 
 # 痛点选项

@@ -102,7 +102,7 @@ def check_knowledge_base(loader=None) -> AgentCheck:
             loader = KnowledgeLoader()
 
         # 测试加载各行业知识
-        industries = ["b2c", "b2b", "service"]
+        industries = ["b2c", "b2b", "service", "b2s"]
         countries = ["thailand", "malaysia", "philippines"]
 
         for ind in industries:

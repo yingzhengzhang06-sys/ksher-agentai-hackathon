@@ -27,6 +27,7 @@ from ui.pages.moments_employee import (
     derive_response_state,
     extract_api_message,
     generate_moments_local_fallback,
+    get_moments_api_base_urls,
     make_frontend_error_response,
     parse_generate_response,
     validate_moments_form,
@@ -300,7 +301,8 @@ def test_generate_moments_local_fallback_returns_structured_mock_result():
 
 
 @patch("ui.pages.moments_employee.urllib.request.urlopen")
-def test_call_generate_api_uses_local_fallback_when_endpoint_missing(mock_urlopen):
+def test_call_generate_api_uses_local_fallback_when_endpoint_missing(mock_urlopen, monkeypatch):
+    monkeypatch.setenv("MOMENTS_API_BASE_URLS", "http://localhost:8000")
     mock_http_error = urllib.error.HTTPError(
         url="http://localhost:8000/api/moments/generate",
         code=404,
@@ -320,6 +322,59 @@ def test_call_generate_api_uses_local_fallback_when_endpoint_missing(mock_urlope
     assert response["status"] == "success"
     assert response["result"]["body"]
     assert response["quality"]["details"]["source"] == "streamlit_local_mock_fallback"
+
+
+def test_get_moments_api_base_urls_supports_ordered_fallbacks(monkeypatch):
+    monkeypatch.setenv(
+        "MOMENTS_API_BASE_URLS",
+        "http://localhost:8000, http://127.0.0.1:8020, http://127.0.0.1:8020",
+    )
+
+    assert get_moments_api_base_urls() == [
+        "http://localhost:8000",
+        "http://127.0.0.1:8020",
+    ]
+
+
+@patch("ui.pages.moments_employee.urllib.request.urlopen")
+def test_call_generate_api_retries_fallback_backend_when_default_endpoint_missing(
+    mock_urlopen,
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "MOMENTS_API_BASE_URLS",
+        "http://localhost:8000,http://127.0.0.1:8020",
+    )
+    mock_http_error = urllib.error.HTTPError(
+        url="http://localhost:8000/api/moments/generate",
+        code=404,
+        msg="Not Found",
+        hdrs=None,
+        fp=MagicMock(),
+    )
+    mock_http_error.fp.read.return_value = b'{"detail":"Not Found"}'
+    mock_response = MagicMock()
+    mock_response.__enter__.return_value.read.return_value = (
+        b'{"success":true,"status":"success","generation_id":"mom_ok",'
+        b'"result":{"title":"t","body":"b","forwarding_advice":"f",'
+        b'"compliance_tip":{"status":"publishable","message":"ok","risk_types":[]},'
+        b'"rewrite_suggestion":"r"},"quality":{"passed":true,"checks":[],"risk_types":[],"details":{}},'
+        b'"errors":[],"fallback_used":false}'
+    )
+    mock_urlopen.side_effect = [mock_http_error, mock_response]
+
+    response = call_generate_api(
+        build_generate_payload(_valid_form(), session_id="sess_retry_backend"),
+        timeout=1,
+    )
+
+    assert response["success"] is True
+    assert response["generation_id"] == "mom_ok"
+    called_urls = [call.args[0].full_url for call in mock_urlopen.call_args_list]
+    assert called_urls == [
+        "http://localhost:8000/api/moments/generate",
+        "http://127.0.0.1:8020/api/moments/generate",
+    ]
 
 
 @patch("ui.pages.moments_employee.urllib.request.urlopen")

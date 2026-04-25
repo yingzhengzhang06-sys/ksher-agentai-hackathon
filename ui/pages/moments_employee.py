@@ -24,6 +24,7 @@ from ui.components.ui_cards import hex_to_rgb
 
 
 API_BASE_URL = os.environ.get("MOMENTS_API_BASE_URL", "http://localhost:8000")
+DEFAULT_API_FALLBACK_URL = os.environ.get("MOMENTS_API_FALLBACK_URL", "http://127.0.0.1:8020")
 GENERATE_PATH = "/api/moments/generate"
 FEEDBACK_PATH = "/api/moments/feedback"
 MAX_EXTRA_CONTEXT_LENGTH = 300
@@ -233,6 +234,36 @@ def _is_endpoint_missing_response(raw: Any) -> bool:
     return False
 
 
+def get_moments_api_base_urls() -> list[str]:
+    """返回可尝试的后端地址，优先使用显式配置，再回退到本地备用端口。"""
+    configured = os.environ.get("MOMENTS_API_BASE_URLS", "")
+    if configured.strip():
+        candidates = configured.split(",")
+    else:
+        explicit_base_url = os.environ.get("MOMENTS_API_BASE_URL")
+        fallback_url = os.environ.get("MOMENTS_API_FALLBACK_URL")
+        if fallback_url is None and explicit_base_url is None:
+            fallback_url = DEFAULT_API_FALLBACK_URL
+        candidates = [explicit_base_url or API_BASE_URL, fallback_url or ""]
+
+    urls: list[str] = []
+    for item in candidates:
+        url = str(item or "").strip().rstrip("/")
+        if url and url not in urls:
+            urls.append(url)
+    return urls
+
+
+def _build_json_request(url: str, payload: dict[str, Any]) -> urllib.request.Request:
+    body = json.dumps(payload).encode("utf-8")
+    return urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+
 def _select_local_mock_scenario(extra_context: str) -> str:
     """本地兜底沿用后端 mock 标记，避免新增真实 LLM 调用。"""
     marker = (extra_context or "").lower()
@@ -270,88 +301,95 @@ def generate_moments_local_fallback(payload: dict[str, Any]) -> dict[str, Any]:
 
 def call_generate_api(payload: dict[str, Any], *, timeout: int = 20) -> dict[str, Any]:
     """调用生成 API。使用标准库，避免新增依赖或全局 API client。"""
-    url = f"{API_BASE_URL.rstrip('/')}{GENERATE_PATH}"
-    body = json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    endpoint_missing = False
+    network_unavailable = False
 
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            return parse_generate_response(data)
-    except (TimeoutError, socket.timeout):
-        return make_frontend_error_response(
-            code="ai_timeout",
-            message="生成请求超时，请稍后重试",
-            status="error",
-        )
-    except urllib.error.HTTPError as exc:
+    for base_url in get_moments_api_base_urls():
+        request = _build_json_request(f"{base_url}{GENERATE_PATH}", payload)
         try:
-            data = json.loads(exc.read().decode("utf-8"))
-            if exc.code in {404, 405} and _is_endpoint_missing_response(data):
-                return generate_moments_local_fallback(payload)
-            return parse_generate_response(data)
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = json.loads(response.read().decode("utf-8"))
+                return parse_generate_response(data)
+        except (TimeoutError, socket.timeout):
+            return make_frontend_error_response(
+                code="ai_timeout",
+                message="生成请求超时，请稍后重试",
+                status="error",
+            )
+        except urllib.error.HTTPError as exc:
+            try:
+                data = json.loads(exc.read().decode("utf-8"))
+                if exc.code in {404, 405} and _is_endpoint_missing_response(data):
+                    endpoint_missing = True
+                    continue
+                return parse_generate_response(data)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return make_frontend_error_response(
+                    code="output_incomplete",
+                    message="接口返回格式异常，请稍后重试",
+                    status="output_incomplete",
+                )
+        except urllib.error.URLError:
+            network_unavailable = True
+            continue
         except (json.JSONDecodeError, UnicodeDecodeError):
             return make_frontend_error_response(
                 code="output_incomplete",
-                message="接口返回格式异常，请稍后重试",
+                message="AI 输出格式异常，请稍后重试",
                 status="output_incomplete",
             )
-    except urllib.error.URLError:
+
+    if endpoint_missing:
+        return generate_moments_local_fallback(payload)
+    if network_unavailable:
         return make_frontend_error_response(
             code="network_error",
             message="无法连接生成服务，请确认 FastAPI 已启动后重试",
             status="error",
         )
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return make_frontend_error_response(
-            code="output_incomplete",
-            message="AI 输出格式异常，请稍后重试",
-            status="output_incomplete",
-        )
+
+    return generate_moments_local_fallback(payload)
 
 
 def call_feedback_api(payload: dict[str, Any], *, timeout: int = 10) -> dict[str, Any]:
     """提交反馈 API。失败时返回前端可提示的结构。"""
-    url = f"{API_BASE_URL.rstrip('/')}{FEEDBACK_PATH}"
-    body = json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    network_unavailable = False
 
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            if isinstance(data, dict) and data.get("success") is True:
-                return data
-            return {
-                "success": False,
-                "message": extract_api_message(data, "反馈提交失败，请稍后重试"),
-            }
-    except (TimeoutError, socket.timeout):
-        return {"success": False, "message": "反馈提交超时，请稍后重试"}
-    except urllib.error.HTTPError as exc:
+    for base_url in get_moments_api_base_urls():
+        request = _build_json_request(f"{base_url}{FEEDBACK_PATH}", payload)
         try:
-            data = json.loads(exc.read().decode("utf-8"))
-            if isinstance(data, dict):
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = json.loads(response.read().decode("utf-8"))
+                if isinstance(data, dict) and data.get("success") is True:
+                    return data
                 return {
                     "success": False,
                     "message": extract_api_message(data, "反馈提交失败，请稍后重试"),
                 }
+        except (TimeoutError, socket.timeout):
+            return {"success": False, "message": "反馈提交超时，请稍后重试"}
+        except urllib.error.HTTPError as exc:
+            try:
+                data = json.loads(exc.read().decode("utf-8"))
+                if exc.code in {404, 405} and _is_endpoint_missing_response(data):
+                    continue
+                if isinstance(data, dict):
+                    return {
+                        "success": False,
+                        "message": extract_api_message(data, "反馈提交失败，请稍后重试"),
+                    }
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+            return {"success": False, "message": "反馈提交失败，请稍后重试"}
+        except urllib.error.URLError:
+            network_unavailable = True
+            continue
         except (json.JSONDecodeError, UnicodeDecodeError):
-            pass
-        return {"success": False, "message": "反馈提交失败，请稍后重试"}
-    except urllib.error.URLError:
+            return {"success": False, "message": "反馈接口返回格式异常，请稍后重试"}
+
+    if network_unavailable:
         return {"success": False, "message": "无法连接反馈服务，请稍后重试"}
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return {"success": False, "message": "反馈接口返回格式异常，请稍后重试"}
+    return {"success": False, "message": "反馈服务地址不可用，请稍后重试"}
 
 
 def derive_compliance_state(response: dict[str, Any] | None) -> str:

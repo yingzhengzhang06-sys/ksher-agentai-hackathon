@@ -45,7 +45,7 @@ class KnowledgeLoader:
         "cost": ["fee_structure.json", "competitors"],
         "proposal": ["base", "strategy", "products", "fee_structure.json"],
         "objection": ["base", "operations", "competitors"],
-        "content": ["base", "strategy", "operations"],
+        "content": ["base", "strategy", "operations", "products", "competitors"],
         "knowledge": ["base", "operations", "strategy"],
         "design": ["base", "strategy"],
     }
@@ -55,11 +55,20 @@ class KnowledgeLoader:
         "b2c": "b2c",
         "b2b": "b2b",
         "service": "service_trade",
+        "b2s": "b2b",  # 1688直采复用B2B知识库
     }
 
-    def __init__(self, knowledge_dir: Optional[str] = None):
+    def __init__(self, knowledge_dir: Optional[str] = None, memory_manager=None, use_vector_store: bool = True):
         self.knowledge_dir = knowledge_dir or KNOWLEDGE_DIR
         self._cache: Dict[str, str] = {}  # 文件路径 → 内容缓存
+        self.memory_manager = memory_manager  # 可选的向量记忆系统
+        self._vector_store = None
+        if use_vector_store:
+            try:
+                from services.vector_store import get_vector_store
+                self._vector_store = get_vector_store()
+            except Exception:
+                self._vector_store = None
 
     def load(self, agent_name: str, context: dict) -> str:
         """
@@ -119,13 +128,110 @@ class KnowledgeLoader:
             if focus_key in bf_info:
                 parts.append(f"策略重点：{bf_info[focus_key]}\n")
 
-        # 5. 加载外部动态知识库（龙虾等外部源，无需手动同步）
+        # 5. 加载训练知识库（用户注入的知识块）
+        training_knowledge = self._load_training_knowledge(agent_name, context)
+        if training_knowledge:
+            parts.append(f"\n\n---\n\n# 训练补充知识\n\n{training_knowledge}")
+
+        # 6. 向量知识检索（如果 memory_manager 可用）
+        vector_knowledge = self._query_vector_knowledge(agent_name, context)
+        if vector_knowledge:
+            parts.append(f"\n\n---\n\n# 向量检索知识\n\n{vector_knowledge}")
+
+        # 7. 加载外部动态知识库（龙虾等外部源，无需手动同步）
         external = self._load_external_knowledge(agent_name, context)
         if external:
             parts.append(external)
 
         result = "\n".join(parts).strip()
         return result if result else "# 知识库加载完成（暂无匹配文档）"
+
+    def _query_vector_knowledge(self, agent_name: str, context: dict) -> Optional[str]:
+        """
+        从向量数据库检索相关知识（RAG检索）。
+        优先使用 ChromaDB VectorStore，回退到 memory_manager。
+        """
+        # 1. 尝试使用 VectorStore（ChromaDB）
+        if self._vector_store is not None:
+            try:
+                # 构建查询文本
+                query_parts = []
+                industry = context.get("industry", "")
+                target_country = context.get("target_country", "")
+                pain_points = context.get("pain_points", "")
+
+                if pain_points:
+                    query_parts.append(str(pain_points))
+                if industry:
+                    query_parts.append(industry)
+                if target_country:
+                    query_parts.append(target_country)
+                query_parts.append(agent_name)
+
+                query_text = " ".join(query_parts)
+
+                # 构建过滤条件
+                filters = None
+                if industry in ("b2c", "b2b", "service"):
+                    # 可以根据类别过滤，但先不做严格过滤以保留召回率
+                    pass
+
+                results = self._vector_store.search(
+                    query=query_text,
+                    top_k=5,
+                    filters=filters,
+                )
+
+                if not results:
+                    return None
+
+                # 格式化结果，按相关性排序
+                lines = ["### 相关知识（RAG检索）\n"]
+                for i, r in enumerate(results, 1):
+                    score = r.get("score", 0)
+                    text = r.get("text", "")
+                    meta = r.get("metadata", {})
+                    source = meta.get("filename", "未知来源")
+                    # 只取前300字，避免过长
+                    snippet = text[:300] + "..." if len(text) > 300 else text
+                    lines.append(f"[{i}] [{source}] (相关度:{score:.2f})\n{snippet}\n")
+
+                return "\n".join(lines)
+            except Exception:
+                # VectorStore 失败，回退到 memory_manager
+                pass
+
+        # 2. 回退：使用 memory_manager（如果存在）
+        if self.memory_manager:
+            try:
+                query_parts = []
+                industry = context.get("industry", "")
+                target_country = context.get("target_country", "")
+                if industry:
+                    query_parts.append(industry)
+                if target_country:
+                    query_parts.append(target_country)
+                if not query_parts:
+                    return None
+
+                query_text = f"{' '.join(query_parts)} {agent_name}"
+                results = self.memory_manager.query(
+                    query_text=query_text,
+                    memory_types=["semantic"],
+                    top_k=3,
+                    agent_name=agent_name,
+                )
+                if not results:
+                    return None
+
+                lines = []
+                for r in results:
+                    lines.append(f"- {r['content']}")
+                return "\n".join(lines)
+            except Exception:
+                return None
+
+        return None
 
     def _match_external_file(self, filename: str, agent_name: str, context: dict) -> bool:
         """判断外部文件是否匹配当前 Agent 和上下文。"""
@@ -344,6 +450,66 @@ class KnowledgeLoader:
         """根据当前渠道判断战场类型。"""
         from config import CHANNEL_BATTLEFIELD_MAP
         return CHANNEL_BATTLEFIELD_MAP.get(current_channel)
+
+    def _load_training_knowledge(self, agent_name: str, context: dict) -> Optional[str]:
+        """从 training.db 加载用户注入的训练知识块（按 Agent + 上下文过滤）。"""
+        try:
+            from services.training_service import (
+                get_knowledge_chunks,
+                AGENT_KNOWLEDGE_CATEGORIES,
+                increment_chunk_retrieval,
+                CATEGORY_LABELS,
+            )
+        except ImportError:
+            return None
+
+        categories = AGENT_KNOWLEDGE_CATEGORIES.get(agent_name, ["sales"])
+        industry = context.get("industry", "")
+        target_country = context.get("target_country", "")
+
+        lines = []
+        chunk_ids = []
+
+        for cat in categories:
+            chunks = get_knowledge_chunks(agent_name, category=cat, limit=3)
+            if not chunks:
+                continue
+
+            # 按行业/国家过滤
+            filtered = []
+            for c in chunks:
+                content_lower = c.content.lower()
+                if industry and industry.lower() in content_lower:
+                    filtered.append(c)
+                elif target_country and target_country.lower() in content_lower:
+                    filtered.append(c)
+                elif not industry and not target_country:
+                    filtered.append(c)
+
+            effective = filtered[:2] if filtered else chunks[:1]
+            icon = CATEGORY_LABELS.get(cat, cat)
+            lines.append(f"### {icon} {cat}\n")
+            for c in effective:
+                content = c.content[:300] + ("..." if len(c.content) > 300 else "")
+                lines.append(f"- {content}\n")
+                chunk_ids.append(c.chunk_id)
+
+        if not lines:
+            return None
+
+        result = "".join(lines)
+        # 截断防止超出
+        if len(result) > 2000:
+            result = result[:2000] + f"\n\n...（共 {len(chunk_ids)} 个知识块）"
+
+        # 增加检索次数
+        for chunk_id in chunk_ids:
+            try:
+                increment_chunk_retrieval(chunk_id)
+            except Exception:
+                pass
+
+        return result
 
     def clear_cache(self):
         """清空文件缓存。"""

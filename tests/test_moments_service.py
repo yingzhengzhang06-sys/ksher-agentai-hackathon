@@ -6,6 +6,7 @@
 import json
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -215,13 +216,14 @@ def test_llm_client_adapter_uses_content_agent_and_structured_parser():
         def __init__(self):
             self.calls = []
 
-        def call_sync(self, agent_name, system, user_msg, temperature=0.7):
+        def call_sync(self, agent_name, system, user_msg, temperature=0.7, timeout=None):
             self.calls.append(
                 {
                     "agent_name": agent_name,
                     "system": system,
                     "user_msg": user_msg,
                     "temperature": temperature,
+                    "timeout": timeout,
                 }
             )
             return get_mock_moments_output("success")
@@ -235,4 +237,66 @@ def test_llm_client_adapter_uses_content_agent_and_structured_parser():
     assert client.calls
     assert client.calls[0]["agent_name"] == "content"
     assert client.calls[0]["temperature"] == 0.7
+    assert client.calls[0]["timeout"] == 8.0
     assert "目标客户：跨境电商卖家" in client.calls[0]["user_msg"]
+
+
+def test_llm_client_adapter_accepts_custom_timeout_seconds():
+    class FakeLLMClient:
+        def __init__(self):
+            self.timeout = None
+
+        def call_sync(self, agent_name, system, user_msg, temperature=0.7, timeout=None):
+            self.timeout = timeout
+            return get_mock_moments_output("success")
+
+    client = FakeLLMClient()
+
+    response = generate_moments_with_llm_client(
+        _sample_request(),
+        client,
+        max_retries=0,
+        timeout_seconds=3.5,
+    )
+
+    assert response.success is True
+    assert client.timeout == 3.5
+
+
+def test_llm_client_adapter_treats_error_text_as_ai_failure():
+    class ErrorTextLLMClient:
+        def call_sync(self, agent_name, system, user_msg, temperature=0.7, timeout=None):
+            return "[ERROR] LLM 调用失败：timeout"
+
+    response = generate_moments_with_llm_client(
+        _sample_request(),
+        ErrorTextLLMClient(),
+        max_retries=0,
+    )
+
+    assert response.success is False
+    assert response.status == GenerationStatus.ERROR
+    assert response.fallback_used is True
+    assert response.errors[0].code == ErrorCode.AI_TIMEOUT
+
+
+def test_llm_client_adapter_hard_timeout_returns_fallback():
+    class SlowLLMClient:
+        def call_sync(self, agent_name, system, user_msg, temperature=0.7, timeout=None):
+            time.sleep(0.2)
+            return get_mock_moments_output("success")
+
+    started_at = time.perf_counter()
+    response = generate_moments_with_llm_client(
+        _sample_request(),
+        SlowLLMClient(),
+        max_retries=0,
+        timeout_seconds=0.01,
+    )
+    elapsed = time.perf_counter() - started_at
+
+    assert elapsed < 0.15
+    assert response.success is False
+    assert response.status == GenerationStatus.ERROR
+    assert response.fallback_used is True
+    assert response.errors[0].code == ErrorCode.AI_TIMEOUT

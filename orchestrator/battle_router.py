@@ -364,6 +364,30 @@ class BattleRouter:
         self._last_pack = generate_battle_pack_sync(self._context, self._agents)
         return self._last_pack
 
+    def route_swarm(self) -> dict:
+        """
+        K2.6 Swarm模式执行 — 自动拆解为子任务并行执行。
+
+        Returns:
+            dict: 作战包结果（与route()格式兼容）
+        """
+        if not self._context:
+            raise ValueError("请先调用 set_context() 设置客户上下文")
+        if not self._agents:
+            raise ValueError("请先注册至少一个 Agent")
+
+        from orchestrator.swarm_orchestrator import SwarmOrchestrator
+
+        orchestrator = SwarmOrchestrator(
+            llm_client=self.llm_client,
+            knowledge_loader=self.knowledge_loader,
+        )
+        self._last_pack = orchestrator.run_battle_pack(
+            context=self._context,
+            agents=self._agents,
+        )
+        return self._last_pack
+
     def get_battlefield(self) -> str:
         """获取当前战场类型。"""
         if not self._context:

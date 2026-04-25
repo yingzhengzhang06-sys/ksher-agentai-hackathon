@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # Streamlit 应用
+  app:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    image: ksher-agentai:latest
+    container_name: ksher_agentai_app
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      # Streamlit 配置
+      - STREAMLIT_THEME=dark
+      - STREAMLIT_CLIENT_SHOW_STATISTICS=false
+      - STREAMLIT_SERVER_ENABLE_CORS=true
+      - STREAMLIT_SERVER_ENABLE_WEB_SOCKET_COMPRESSION=true
+    volumes:
+      # 挂载数据目录（持久化）
+      - ./data:/app/data
+      - ./assets:/app/assets
+      - ./knowledge:/app/knowledge:ro
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+      - celery-worker
+    networks:
+      - ksher-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Redis（消息队列 + 缓存）
+  redis:
+    image: redis:7-alpine
+    container_name: ksher_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ksher-network
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "password:${REDIS_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Celery Worker（异步任务处理）
+  celery-worker:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    image: ksher-agentai:latest
+    container_name: ksher_celery_worker
+    restart: unless-stopped
+    command: celery -A tasks worker -l info --loglevel=info --concurrency=4
+    environment:
+      - CELERY_BROKER=redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-}@redis:6379/1
+      - C_FORCE_ROOT=true
+    volumes:
+      - ./data:/app/data
+      - ./assets:/app/assets
+      - ./knowledge:/app/knowledge:ro
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+    networks:
+      - ksher-network
+    healthcheck:
+      test: ["CMD", "celery", "-A", "tasks", "inspect", "active"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Beat（定时任务调度）
+  celery-beat:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    image: ksher-agentai:latest
+    container_name: ksher_celery_beat
+    restart: unless-stopped
+    command: celery -A tasks beat -l info --loglevel=info
+    environment:
+      - CELERY_BROKER=redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-}@redis:6379/1
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+    networks:
+      - ksher-network
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  ksher-network:
+    driver: bridge

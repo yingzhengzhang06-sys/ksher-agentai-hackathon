@@ -15,7 +15,72 @@ from ui.components.error_handlers import render_error, render_empty_state, rende
 
 
 # ============================================================
-# Mock 内容生成器（真实模式就绪后替换为 ContentAgent 调用）
+# 模式判断
+# ============================================================
+def _is_mock_mode() -> bool:
+    """判断是否使用 Mock 模式：BattleRouter 未初始化时回退到 Mock。"""
+    return not st.session_state.get("battle_router_ready", False)
+
+
+# ============================================================
+# 真实 AI 内容生成（ContentAgent）
+# ============================================================
+def _convert_agent_output(agent_result: dict, scene: str) -> list[dict]:
+    """将 ContentAgent 返回格式转换为 UI 展示格式。
+
+    ContentAgent 返回:
+        {"content_type": str, "contents": [{"day", "title", "body", "image_suggestion", "publish_time", "category"}]}
+    UI 需要:
+        [{"id", "title", "content", "tips", "scene"}]
+    """
+    items = agent_result.get("contents", [])
+    results = []
+    for i, item in enumerate(items):
+        tips_parts = []
+        if item.get("publish_time"):
+            tips_parts.append(f"建议发布时间：{item['publish_time']}")
+        if item.get("image_suggestion"):
+            tips_parts.append(f"配图建议：{item['image_suggestion']}")
+        if item.get("category"):
+            tips_parts.append(f"类型：{item['category']}")
+        results.append({
+            "id": i + 1,
+            "title": item.get("title", f"第{item.get('day', i+1)}天"),
+            "content": item.get("body", ""),
+            "tips": " | ".join(tips_parts) if tips_parts else "AI 生成内容",
+            "scene": scene,
+        })
+    return results
+
+
+def _generate_real_content(
+    industry: str,
+    target_country: str,
+    scene: str,
+    topic: str,
+    tone: str,
+    count: int = 3,
+) -> list[dict]:
+    """调用 ContentAgent 生成真实内容。"""
+    content_agent = st.session_state.get("content_agent")
+    if content_agent is None:
+        raise RuntimeError("ContentAgent 未初始化")
+
+    context = {
+        "content_type": scene,
+        "target_audience": topic,
+        "industry": industry,
+        "target_country": target_country,
+        "pain_points": [],
+        "company": "Ksher",
+    }
+    result = content_agent.generate(context)
+    contents = _convert_agent_output(result, scene)
+    return contents[:count]
+
+
+# ============================================================
+# Mock 内容生成器（真实模式就绪后作为 fallback）
 # ============================================================
 def _mock_generate_content(
     industry: str,
@@ -276,6 +341,12 @@ def render_content_factory():
     )
     st.markdown("---")
 
+    # ---- 模式指示 ----
+    if _is_mock_mode():
+        st.warning("当前为 Mock 模式（ContentAgent 未就绪，请检查 API Key 配置）", icon="⚠️")
+    else:
+        st.success("AI 真实模式（调用 ContentAgent）", icon="✅")
+
     # ---- 输入区域 ----
     col1, col2 = st.columns(2)
     with col1:
@@ -328,18 +399,41 @@ def render_content_factory():
             render_error("请输入客户/主题名", "客户/主题名是生成内容的必填项。")
             return
 
-        with st.spinner("AI 正在生成内容..."):
-            contents = _mock_generate_content(
-                industry=industry,
-                target_country=country,
-                scene=scene,
-                topic=topic,
-                tone=tone,
-                count=count,
-            )
+        with st.status("📝 正在生成内容...", expanded=True) as status:
+            st.write(f"🎯 场景：{scene} · 调性：{tone} · 数量：{count}...")
+            if _is_mock_mode():
+                st.write("🤖 Mock 模式：生成文案草稿...")
+                contents = _mock_generate_content(
+                    industry=industry,
+                    target_country=country,
+                    scene=scene,
+                    topic=topic,
+                    tone=tone,
+                    count=count,
+                )
+            else:
+                st.write("🚀 真实 AI 模式：调用 ContentAgent 生成...")
+                try:
+                    contents = _generate_real_content(
+                        industry=industry,
+                        target_country=country,
+                        scene=scene,
+                        topic=topic,
+                        tone=tone,
+                        count=count,
+                    )
+                except Exception as e:
+                    st.warning(f"ContentAgent 调用失败，回退到 Mock 模式：{e}")
+                    contents = _mock_generate_content(
+                        industry=industry,
+                        target_country=country,
+                        scene=scene,
+                        topic=topic,
+                        tone=tone,
+                        count=count,
+                    )
             st.session_state.cf_contents = contents
-
-        st.success(f"已生成 {len(contents)} 条{scene}内容！")
+            status.update(label=f"✅ 已生成 {len(contents)} 条{scene}内容！", state="complete", expanded=False)
 
     # ---- 展示结果 ----
     contents = st.session_state.get("cf_contents", [])
@@ -407,7 +501,7 @@ def render_content_factory():
                 render_copy_button(item["content"], label="复制文案")
 
         st.markdown("---")
-        st.markdown("##### 全部内容")
+        st.caption("全部内容")
         all_text = "\n\n" + "=" * 40 + "\n\n".join(
             f"【{c['title']}】\n{c['content']}" for c in contents
         )

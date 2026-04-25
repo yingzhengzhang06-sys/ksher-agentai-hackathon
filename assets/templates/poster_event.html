@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+</style>
+</head>
+<body>
+<div style="width:750px;height:1334px;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);position:relative;overflow:hidden;">
+
+  <!-- 装饰元素 -->
+  <div style="position:absolute;top:100px;right:-30px;width:200px;height:200px;border-radius:50%;background:rgba(232,62,76,0.15);filter:blur(40px);"></div>
+  <div style="position:absolute;bottom:300px;left:-50px;width:160px;height:160px;border-radius:50%;background:rgba(255,180,132,0.1);filter:blur(30px);"></div>
+
+  <!-- 顶部品牌 -->
+  <div style="padding:50px 50px 20px;display:flex;align-items:center;">
+    <div style="width:44px;height:44px;background:#E83E4C;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <span style="color:white;font-size:20px;font-weight:800;">K</span>
+    </div>
+    <span style="color:rgba(255,255,255,0.8);font-size:16px;margin-left:12px;">Ksher · 开时支付</span>
+  </div>
+
+  <!-- 活动标签 -->
+  <div style="padding:20px 50px 0;">
+    <span style="background:#E83E4C;color:white;font-size:14px;padding:6px 16px;border-radius:20px;font-weight:600;">{event_tag}</span>
+  </div>
+
+  <!-- 活动标题 -->
+  <div style="padding:24px 50px 0;">
+    <div style="color:white;font-size:42px;font-weight:800;line-height:1.3;">{event_name}</div>
+    <div style="color:rgba(255,255,255,0.6);font-size:18px;margin-top:12px;">{event_subtitle}</div>
+  </div>
+
+  <!-- 时间地点卡片 -->
+  <div style="margin:30px 40px;background:rgba(255,255,255,0.08);border-radius:16px;padding:24px 28px;border:1px solid rgba(255,255,255,0.1);">
+    <div style="display:flex;margin-bottom:16px;">
+      <span style="color:#FF6B5B;font-size:18px;margin-right:12px;">📅</span>
+      <div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px;">时间</div>
+        <div style="color:white;font-size:18px;font-weight:600;margin-top:2px;">{event_time}</div>
+      </div>
+    </div>
+    <div style="display:flex;">
+      <span style="color:#FF6B5B;font-size:18px;margin-right:12px;">📍</span>
+      <div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px;">地点</div>
+        <div style="color:white;font-size:18px;font-weight:600;margin-top:2px;">{event_location}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 议程亮点 -->
+  <div style="padding:10px 50px;">
+    <div style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:16px;">活动亮点</div>
+    {agenda_html}
+  </div>
+
+  <!-- CTA -->
+  <div style="position:absolute;bottom:120px;left:50px;right:50px;">
+    <div style="background:linear-gradient(90deg,#E83E4C,#FF6B5B);color:white;font-size:22px;font-weight:700;text-align:center;padding:18px;border-radius:60px;box-shadow:0 6px 24px rgba(232,62,76,0.3);">{cta}</div>
+  </div>
+
+  <!-- 底部 -->
+  <div style="position:absolute;bottom:40px;left:50px;right:50px;text-align:center;">
+    <div style="color:rgba(255,255,255,0.4);font-size:13px;">主办方：Ksher · 开时支付 | 东南亚跨境收款专家</div>
+  </div>
+</div>
+</body>
+</html>

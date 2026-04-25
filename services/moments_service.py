@@ -7,6 +7,10 @@
 from __future__ import annotations
 
 import json
+import inspect
+import os
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from datetime import datetime
 from typing import Any
 from collections.abc import Callable
@@ -44,6 +48,31 @@ REQUIRED_COMPLIANCE_FIELDS = (
     "message",
     "risk_types",
 )
+
+
+def _float_env(name: str, default: float) -> float:
+    try:
+        return float(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _run_with_timeout(
+    func: Callable[..., str],
+    deadline_seconds: float,
+    *args: Any,
+    **kwargs: Any,
+) -> str:
+    """给阻塞式 LLM SDK 调用加硬超时，避免接口线程长期卡住。"""
+    executor = ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(func, *args, **kwargs)
+    try:
+        return future.result(timeout=deadline_seconds)
+    except FutureTimeoutError as exc:
+        future.cancel()
+        raise TimeoutError(f"AI 调用超过 {deadline_seconds:g} 秒未返回") from exc
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
 
 STYLE_FALLBACK_GUIDANCE = {
     CopyStyle.PROFESSIONAL: "发布前请补充真实业务背景，语气保持专业克制。",
@@ -338,6 +367,7 @@ def generate_moments_with_llm_client(
     *,
     agent_name: str = "content",
     max_retries: int = 1,
+    timeout_seconds: float | None = None,
 ) -> MomentsGenerateResponse:
     """
     使用现有 LLMClient 适配真实 AI 调用。
@@ -349,12 +379,37 @@ def generate_moments_with_llm_client(
         request = MomentsGenerateRequest(**request)
 
     def call(system_prompt: str, user_prompt: str) -> str:
-        return llm_client.call_sync(
+        call_sync = llm_client.call_sync
+        call_kwargs: dict[str, Any] = {"temperature": 0.7}
+        timeout = (
+            timeout_seconds
+            if timeout_seconds is not None
+            else _float_env("MOMENTS_AI_TIMEOUT_SECONDS", 8.0)
+        )
+        try:
+            parameters = inspect.signature(call_sync).parameters
+            supports_timeout = (
+                "timeout" in parameters
+                or any(
+                    parameter.kind == inspect.Parameter.VAR_KEYWORD
+                    for parameter in parameters.values()
+                )
+            )
+        except (TypeError, ValueError):
+            supports_timeout = False
+        if supports_timeout:
+            call_kwargs["timeout"] = timeout
+        output = _run_with_timeout(
+            call_sync,
+            timeout,
             agent_name,
             system_prompt,
             user_prompt,
-            temperature=0.7,
+            **call_kwargs,
         )
+        if str(output or "").lstrip().startswith("[ERROR]"):
+            raise RuntimeError(str(output).strip())
+        return output
 
     return generate_moments_with_ai_callable(
         request,

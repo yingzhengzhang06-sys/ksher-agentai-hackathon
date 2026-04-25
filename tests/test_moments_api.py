@@ -178,8 +178,8 @@ def test_generate_moments_default_mode_uses_injected_real_llm_client(monkeypatch
         def __init__(self):
             self.calls = []
 
-        def call_sync(self, agent_name, system, user_msg, temperature=0.7):
-            self.calls.append((agent_name, system, user_msg, temperature))
+        def call_sync(self, agent_name, system, user_msg, temperature=0.7, timeout=None):
+            self.calls.append((agent_name, system, user_msg, temperature, timeout))
             return """{
   "title": "货物贸易收款安排，可以更稳一点",
   "body": "做货物贸易的企业，收款安排建议同时关注到账体验、费用透明和合规流程。不同订单、单证和结汇节奏可能不一样，提前把收款路径规划清楚，后续沟通会更顺。",
@@ -209,6 +209,7 @@ def test_generate_moments_default_mode_uses_injected_real_llm_client(monkeypatch
     assert fake_client.calls
     assert fake_client.calls[0][0] == "content"
     assert "目标客户：货物贸易" in fake_client.calls[0][2]
+    assert fake_client.calls[0][4] == 8.0
 
 
 def test_generate_moments_explicit_mock_mode_skips_real_llm_client(monkeypatch):
@@ -255,6 +256,28 @@ def test_generate_moments_real_client_init_error_returns_fallback(monkeypatch):
     payload = _payload("客户关注服务贸易回款")
     payload["target_customer"] = "service_trade"
     payload["session_id"] = "sess_real_client_init_error"
+    response = client.post("/api/moments/generate", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is False
+    assert data["status"] == "error"
+    assert data["fallback_used"] is True
+    assert data["errors"][0]["code"] == "ai_timeout"
+    assert "需要人工补充" in data["result"]["body"]
+
+
+def test_generate_moments_real_client_timeout_returns_fallback(monkeypatch):
+    class TimeoutLLMClient:
+        def call_sync(self, agent_name, system, user_msg, temperature=0.7, timeout=None):
+            raise TimeoutError(f"timed out after {timeout}s")
+
+    monkeypatch.delenv("MOMENTS_AI_MODE", raising=False)
+    monkeypatch.setenv("MOMENTS_AI_TIMEOUT_SECONDS", "3")
+    monkeypatch.setattr("api.main.get_moments_llm_client", lambda: TimeoutLLMClient())
+
+    payload = _payload("客户关注跨境电商旺季收款效率")
+    payload["session_id"] = "sess_real_client_timeout"
     response = client.post("/api/moments/generate", json=payload)
 
     assert response.status_code == 200

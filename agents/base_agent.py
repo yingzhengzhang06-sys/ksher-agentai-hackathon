@@ -28,14 +28,16 @@ class BaseAgent(ABC):
     agent_name: str = "base"
     temperature: float = 0.7
 
-    def __init__(self, llm_client, knowledge_loader):
+    def __init__(self, llm_client, knowledge_loader, memory_manager=None):
         """
         Args:
             llm_client: LLMClient 实例（提供 stream_text / call_sync）
             knowledge_loader: KnowledgeLoader 实例（提供 load 方法）
+            memory_manager: MemoryManager 实例（可选，提供记忆查询）
         """
         self.llm_client = llm_client
         self.knowledge_loader = knowledge_loader
+        self.memory_manager = memory_manager
         # 如果子类显式定义了 temperature（非继承基类默认值），则保留；否则从配置查找
         class_temp = getattr(self.__class__, 'temperature', None)
         if class_temp is None or class_temp == BaseAgent.temperature:
@@ -67,8 +69,11 @@ class BaseAgent(ABC):
         Yields:
             str: 纯文本 chunk
         """
-        # 1. 加载知识库
+        # 1. 加载知识库 + 记忆
         knowledge = self.knowledge_loader.load(self.agent_name, context)
+        memory_context = self._query_memory(context)
+        if memory_context:
+            knowledge = f"{knowledge}\n\n---\n\n# 相关记忆与历史\n\n{memory_context}\n"
 
         # 2. 构建 Prompt
         system = self.build_system_prompt(knowledge)
@@ -119,6 +124,9 @@ class BaseAgent(ABC):
             str: LLM 返回的完整文本
         """
         knowledge = self.knowledge_loader.load(self.agent_name, context)
+        memory_context = self._query_memory(context)
+        if memory_context:
+            knowledge = f"{knowledge}\n\n---\n\n# 相关记忆与历史\n\n{memory_context}\n"
         system = self.build_system_prompt(knowledge)
         user_msg = self.build_user_message(context)
 
@@ -128,6 +136,50 @@ class BaseAgent(ABC):
             user_msg=user_msg,
             temperature=self.temperature,
         )
+
+    def _query_memory(self, context: dict) -> str:
+        """
+        查询记忆系统，获取与当前上下文相关的记忆。
+
+        返回格式化后的记忆文本，为空字符串表示无相关记忆。
+        """
+        if not self.memory_manager:
+            return ""
+
+        try:
+            # 从上下文中提取查询关键词
+            query_parts = []
+            industry = context.get("industry", "")
+            target_country = context.get("target_country", "")
+            current_channel = context.get("current_channel", "")
+            if industry:
+                query_parts.append(f"{industry} 行业")
+            if target_country:
+                query_parts.append(f"{target_country} 市场")
+            if current_channel:
+                query_parts.append(f"{current_channel} 渠道")
+
+            if not query_parts:
+                return ""
+
+            query_text = " ".join(query_parts)
+            memories = self.memory_manager.query(
+                query_text=query_text,
+                memory_types=["semantic", "content_history"],
+                top_k=3,
+                agent_name=self.agent_name,
+            )
+
+            if not memories:
+                return ""
+
+            lines = []
+            for i, mem in enumerate(memories, 1):
+                lines.append(f"{i}. [{mem.get('memory_type', '记忆')}] {mem['content']}")
+            return "\n".join(lines)
+        except Exception:
+            # 记忆查询失败不应阻断主流程
+            return ""
 
     def _safe_parse_json(self, text: str) -> Optional[dict]:
         """
@@ -222,7 +274,7 @@ class AgentRegistry:
         cls._agents[name] = agent_class
 
     @classmethod
-    def create(cls, name: str, llm_client, knowledge_loader) -> BaseAgent:
+    def create(cls, name: str, llm_client, knowledge_loader, memory_manager=None) -> BaseAgent:
         """
         创建 Agent 实例。
 
@@ -230,6 +282,7 @@ class AgentRegistry:
             name: Agent 名称
             llm_client: LLMClient 实例
             knowledge_loader: KnowledgeLoader 实例
+            memory_manager: MemoryManager 实例（可选）
 
         Returns:
             BaseAgent: Agent 实例
@@ -237,7 +290,7 @@ class AgentRegistry:
         agent_class = cls._agents.get(name)
         if not agent_class:
             raise ValueError(f"未注册的 Agent: {name}。已注册: {list(cls._agents.keys())}")
-        return agent_class(llm_client, knowledge_loader)
+        return agent_class(llm_client, knowledge_loader, memory_manager)
 
     @classmethod
     def list_agents(cls) -> list:

@@ -332,6 +332,26 @@
       "tags": ["Demo", "Q&A", "评审", "路演", "FAQ"],
       "agents": ["knowledge", "speech"],
       "priority": 6
+    },
+    {
+      "id": "video_sop",
+      "file": "video_center/video_sop.md",
+      "format": "markdown",
+      "title": "短视频运营 SOP 完整手册",
+      "summary": "选题策划、脚本创作、素材准备、拍摄剪辑、发布优化、账号运营全流程指南",
+      "tags": ["短视频", "SOP", "抖音", "视频号", "选题", "脚本", "运营"],
+      "agents": ["video_topic", "video_script", "video_publish", "video_analysis", "content"],
+      "priority": 8
+    },
+    {
+      "id": "video_platform_specs",
+      "file": "video_center/platform_specs.md",
+      "format": "markdown",
+      "title": "抖音/视频号平台规则对比",
+      "summary": "两大平台技术规格、算法机制、内容风格、违规红线对比",
+      "tags": ["短视频", "抖音", "视频号", "平台规则", "算法"],
+      "agents": ["video_topic", "video_script", "video_publish", "video_analysis"],
+      "priority": 7
     }
   ],
   "tag_index": {
@@ -372,7 +392,14 @@
     "Demo": ["demo_scenario_a", "demo_scenario_b", "demo_qa"],
     "演示": ["demo_scenario_a", "demo_scenario_b", "demo_qa"],
     "评审": ["demo_qa"],
-    "路演": ["demo_qa"]
+    "路演": ["demo_qa"],
+    "短视频": ["video_sop", "video_platform_specs"],
+    "SOP": ["video_sop"],
+    "抖音": ["video_platform_specs"],
+    "视频号": ["video_platform_specs"],
+    "选题": ["video_sop"],
+    "脚本": ["video_sop"],
+    "运营": ["video_sop"]
   },
   "agent_doc_map": {
     "cost": {
@@ -408,6 +435,26 @@
     "design": {
       "description": "设计顾问 Agent，需要品牌规范和产品卖点",
       "doc_ids": ["base_company", "b2c_overview", "b2b_overview"],
+      "injection_mode": "selective"
+    },
+    "video_topic": {
+      "description": "短视频选题策划 Agent，需要运营SOP和平台规则",
+      "doc_ids": ["video_sop", "video_platform_specs", "base_company"],
+      "injection_mode": "selective"
+    },
+    "video_script": {
+      "description": "短视频脚本创作 Agent，需要运营SOP、平台规则和产品卖点",
+      "doc_ids": ["video_sop", "video_platform_specs", "base_company", "fee_structure_json"],
+      "injection_mode": "selective"
+    },
+    "video_publish": {
+      "description": "短视频发布优化 Agent，需要平台规则和运营SOP",
+      "doc_ids": ["video_sop", "video_platform_specs"],
+      "injection_mode": "selective"
+    },
+    "video_analysis": {
+      "description": "竞品视频分析 Agent，需要产品卖点和竞品信息",
+      "doc_ids": ["video_sop", "video_platform_specs", "base_company", "comp_pingpong", "comp_bank", "comp_worldfirst"],
       "injection_mode": "selective"
     }
   },

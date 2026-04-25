@@ -60,7 +60,7 @@ BUSINESS_TYPES = {
         "flow_steps": ["注册账号", "申请VA", "绑定店铺", "买家下单", "平台结算", "提现结汇"],
     },
     "service": {
-        "title": "服务贸易收款",
+        "title": "服务贸易收款（B2B）",
         "subtitle": "物流 / 广告 / SaaS / 技术服务收款",
         "selling_points": [
             ("多场景覆盖", "物流、广告、SaaS、技术服务"),
@@ -69,6 +69,17 @@ BUSINESS_TYPES = {
         ],
         "fee_info": "收款费率 0.6% - 1.0%",
         "flow_steps": ["注册开户", "选择场景", "提交合同", "获取账户", "发起收款", "结汇提现"],
+    },
+    "b2s": {
+        "title": "1688直采收款（B2S）",
+        "subtitle": "1688跨境直采 · 小B采购 · 一件代发",
+        "selling_points": [
+            ("1688直采适配", "对接1688跨境直采链路，小B采购无门槛"),
+            ("灵活结算", "支持多频次小额收款，T+1到账"),
+            ("合规持牌", "多国央行牌照，资金安全有保障"),
+        ],
+        "fee_info": "收款费率 0.6% - 1.0%",
+        "flow_steps": ["注册开户", "提交资料", "获取VA", "1688下单", "买家打款", "结汇提现"],
     },
 }
 
@@ -355,42 +366,66 @@ def get_prebuilt_posters() -> list[dict]:
     if not os.path.exists(poster_dir):
         return []
 
-    posters = []
-    mapping = {
-        "company-intro": ("公司介绍", "Ksher 公司介绍"),
-        "b2b-intro": ("B2B业务", "B2B 货物贸易业务介绍"),
-        "b2c-intro": ("B2C业务", "B2C 跨境电商业务介绍"),
-        "service-trade": ("服务贸易", "服务贸易收款综合版"),
-        "thailand": ("泰国", "泰国本地收款方案"),
-        "philippines": ("菲律宾", "菲律宾本地收款方案"),
-        "malaysia": ("马来西亚", "马来西亚本地收款方案"),
-        "indonesia": ("印尼", "印尼本地收款方案"),
-        "vietnam": ("越南", "越南本地收款方案"),
-        "singapore": ("新加坡", "新加坡全球账户"),
-        "hongkong": ("香港", "香港全球账户"),
-        "fundflow": ("资金链路", "资金链路图解"),
-        "glossary": ("术语速查", "常用术语速查"),
-        "pobo": ("POBO", "代理付款方案"),
-        "operation": ("操作指南", "收款到提现完整流程"),
-        "troubleshooting": ("排查清单", "常见问题排查"),
-        "kaishidui": ("开时兑", "实时换汇/预约换汇"),
+    # 精确文件名 → (分类, 中文显示名)
+    FILE_MAPPING = {
+        # ---- 1.x 公司与业务介绍 ----
+        "1-1ksher-company-intro-poster.png": ("公司介绍", "Ksher 公司介绍"),
+        "1-2ksher-b2c-intro-poster.png": ("B2C业务", "B2C 跨境电商业务介绍"),
+        "1-3ksher-b2b-intro-poster.png": ("B2B业务", "B2B 货物贸易业务介绍"),
+        "1-4ksher-service-trade-combined-poster.png": ("服务贸易", "服务贸易收款综合版"),
+        "1-5ksher-b2c-fundflow-poster.png": ("资金链路", "B2C 资金链路图解"),
+        "1-6ksher-b2b-fundflow-poster.png": ("资金链路", "B2B 资金链路图解"),
+        "1-7ksher-glossary-poster.png": ("术语速查", "常用术语速查"),
+        "1-8ksher-service-fundflow-poster.png": ("资金链路", "服务贸易资金链路图解"),
+        # ---- 2.x B2C 国家方案 ----
+        "2-1ksher-thailand-b2c-poster.png": ("B2C业务", "泰国 B2C 收款方案"),
+        "2-2ksher-philippines-b2c-poster.png": ("B2C业务", "菲律宾 B2C 收款方案"),
+        "2-3ksher-malaysia-b2c-poster.png": ("B2C业务", "马来西亚 B2C 收款方案"),
+        "2-4ksher-indonesia-b2c-poster.png": ("B2C业务", "印尼 B2C 收款方案"),
+        "2-6ksher-vietnam-b2c-poster.png": ("B2C业务", "越南 B2C 收款方案"),
+        # ---- 3.x B2B 国家方案 ----
+        "3-1ksher-thailand-poster.png": ("B2B业务", "泰国 B2B 收款方案"),
+        "3-2ksher-malaysia-b2b-poster.png": ("B2B业务", "马来西亚 B2B 收款方案"),
+        "3-3ksher-indonesia-b2b-poster.png": ("B2B业务", "印尼 B2B 收款方案"),
+        "3-5ksher-vietnam-b2b-poster.png": ("B2B业务", "越南 B2B 收款方案"),
+        "3-6ksher-philippines-b2b-poster.png": ("B2B业务", "菲律宾 B2B 收款方案"),
+        "3-7ksher-hongkong-account-poster.png": ("全球账户", "香港全球账户"),
+        # ---- 4.x 服务贸易国家方案 ----
+        "4-2ksher-malaysia-service-poster.png": ("服务贸易", "马来西亚服务贸易收款"),
+        "4-3ksher-indonesia-service-poster.png": ("服务贸易", "印尼服务贸易收款"),
+        "4-4ksher-singapore-service-poster.png": ("服务贸易", "新加坡服务贸易收款"),
+        "4-5ksher-vietnam-service-poster.png": ("服务贸易", "越南服务贸易收款"),
+        "4-6ksher-philippines-service-poster.png": ("服务贸易", "菲律宾服务贸易收款"),
+        # ---- 5.x 增值服务 ----
+        "5-1ksher-pobo-poster.png": ("增值服务", "POBO 代理付款方案"),
+        "5-2ksher-kaishidui-poster.png": ("增值服务", "开时兑·实时/预约换汇"),
+        # ---- 6.x 操作指南 ----
+        "6-1ksher-operation-guide-poster.png": ("操作指南", "收款到提现完整流程"),
+        # ---- 竞品对比 ----
+        "ksher-competitor-comparison-poster.png": ("竞品对比", "竞品综合对比"),
+        "ksher-competitor-photonpay-poster.png": ("竞品对比", "对比 PhotonPay"),
+        "ksher-competitor-pingpong-poster.png": ("竞品对比", "对比 PingPong"),
+        "ksher-competitor-worldfirst-poster.png": ("竞品对比", "对比 WorldFirst"),
+        "ksher-competitor-xtransfer-poster.png": ("竞品对比", "对比 XTransfer"),
+        "ksher-competitor-yeepay-poster.png": ("竞品对比", "对比 易宝支付"),
+        # ---- 其他 ----
+        "ksher-1688-procurement-poster.png": ("增值服务", "1688 直采代付方案"),
+        "ksher-troubleshooting-poster.png": ("操作指南", "常见问题排查清单"),
+        "lc-guide-poster.png": ("操作指南", "信用证操作指南"),
     }
 
+    posters = []
     for filename in sorted(os.listdir(poster_dir)):
         if not filename.endswith(".png"):
             continue
         filepath = os.path.join(poster_dir, filename)
 
-        # 解析文件名
-        name_lower = filename.lower()
-        category = "其他"
-        display_name = filename.replace(".png", "").replace("-", " ")
-
-        for key, (cat, disp) in mapping.items():
-            if key in name_lower:
-                category = cat
-                display_name = disp
-                break
+        if filename in FILE_MAPPING:
+            category, display_name = FILE_MAPPING[filename]
+        else:
+            # 未映射文件：自动从文件名推断
+            category = "其他"
+            display_name = filename.replace(".png", "").replace("-", " ").replace("ksher ", "")
 
         posters.append({
             "filename": filename,

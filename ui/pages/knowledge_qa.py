@@ -6,16 +6,72 @@
   - 各国合规政策问答
   - 竞品对比知识检索
   - 带引用来源的答案
+  - 模型用量监控（MiniMax）
+
+模式切换：
+  - REAL 模式：调用 KnowledgeAgent（需要后端就绪）
+  - MOCK 模式：使用内置 Mock 数据生成器（默认，无需后端）
 """
 
 import streamlit as st
 
-from config import BRAND_COLORS
+from config import BRAND_COLORS, INDUSTRY_OPTIONS, COUNTRY_OPTIONS
 from ui.components.error_handlers import render_empty_state
+
+# ============================================================
+# 模型用量跟踪（MiniMax 配额）
+# ============================================================
+# MiniMax token 用量参考：约 500 tokens/s
+_MINIMAX_TOKENS_PER_HOUR = 500 * 60 * 60
+
+# 初始配额（5小时用量 = 9,000,000 tokens）
+_INITIAL_MINIMAX_QUOTA = 9_000_000
+
+
+def _get_model_usage_stats() -> dict:
+    """获取当前模型用量统计（从 session_state 读取）"""
+    if "minimax_total_tokens" not in st.session_state:
+        st.session_state.minimax_total_tokens = 0
+    if "minimax_quota_remaining" not in st.session_state:
+        st.session_state.minimax_quota_remaining = _INITIAL_MINIMAX_QUOTA
+
+    total = st.session_state.minimax_total_tokens
+    quota = st.session_state.minimax_quota_remaining
+    used = total
+    usage_hours = total / _MINIMAX_TOKENS_PER_HOUR
+
+    return {
+        "model_name": "MiniMax-Text-01",
+        "used_tokens": used,
+        "used_hours": round(usage_hours, 2),
+        "quota_remaining": quota,
+        "quota_percent": min(100, round((quota / _INITIAL_MINIMAX_QUOTA) * 100, 1)),
+    }
+
+
+def _track_model_usage(tokens: int):
+    """记录一次 API 调用的 token 用量"""
+    if "minimax_total_tokens" not in st.session_state:
+        st.session_state.minimax_total_tokens = 0
+    if "minimax_quota_remaining" not in st.session_state:
+        st.session_state.minimax_quota_remaining = _INITIAL_MINIMAX_QUOTA
+
+    st.session_state.minimax_total_tokens += tokens
+    st.session_state.minimax_quota_remaining = max(
+        0, st.session_state.minimax_quota_remaining - tokens
+    )
 
 
 # ============================================================
-# Mock 知识库问答（真实模式就绪后替换为 KnowledgeAgent 调用）
+# 模式判断（与 battle_station.py 保持一致）
+# ============================================================
+def _is_mock_mode() -> bool:
+    """判断是否使用 Mock 模式：BattleRouter 未初始化时回退到 Mock。"""
+    return not st.session_state.get("battle_router_ready", False)
+
+
+# ============================================================
+# Mock 知识库问答（真实模式就绪后作为 fallback）
 # ============================================================
 # 预设问答库：问题关键词 -> 答案
 def _get_mock_answer(question: str) -> dict:
@@ -190,6 +246,139 @@ def _get_mock_answer(question: str) -> dict:
 
 
 # ============================================================
+# 真实模式调用 KnowledgeAgent
+# ============================================================
+_CONFIDENCE_EN_TO_CN = {
+    "high": "高",
+    "medium": "中",
+    "low": "低",
+}
+
+
+def _get_real_answer(question: str, industry: str = "", target_country: str = "") -> dict:
+    """
+    调用 KnowledgeAgent 生成真实回答。
+
+    依赖：
+      - app.py 启动时已通过 services.app_initializer 初始化 KnowledgeAgent
+      - st.session_state["knowledge_agent"] 已就绪
+    """
+    agent = st.session_state.get("knowledge_agent")
+    if agent is None:
+        raise RuntimeError(
+            "KnowledgeAgent 未初始化。请检查 app.py 中的 session_state 初始化，"
+            "或确认 API Key 配置正确（.env 文件）。"
+        )
+
+    context = {"question": question}
+    if industry:
+        context["industry"] = industry
+    if target_country:
+        context["target_country"] = target_country
+
+    result = agent.generate(context)
+
+    # 映射英文置信度到中文
+    raw_confidence = result.get("confidence", "medium")
+    result["confidence"] = _CONFIDENCE_EN_TO_CN.get(raw_confidence, raw_confidence)
+
+    return result
+
+
+# ============================================================
+# 多轮对话真实模式
+# ============================================================
+def _get_real_answer_with_history(
+    chat_history: list, industry: str = "", target_country: str = ""
+) -> dict:
+    """
+    多轮对话模式：传入完整对话历史，调用 LLMClient.call_with_history。
+    """
+    agent = st.session_state.get("knowledge_agent")
+    llm_client = st.session_state.get("llm_client")
+    knowledge_loader = st.session_state.get("knowledge_loader")
+
+    if agent is None or llm_client is None:
+        raise RuntimeError("KnowledgeAgent 或 LLMClient 未初始化。")
+
+    # 构建 system prompt（复用 KnowledgeAgent 的逻辑）
+    context = {"question": chat_history[-1]["content"]}
+    if industry:
+        context["industry"] = industry
+    if target_country:
+        context["target_country"] = target_country
+
+    knowledge = knowledge_loader.load("knowledge", context)
+    system = agent.build_system_prompt(knowledge)
+
+    # 补充输出格式要求到 system prompt
+    system += (
+        "\n\n## 输出格式\n"
+        "请严格按JSON格式输出：\n"
+        '{"answer": "...", "ksher_advantages": ["..."], '
+        '"speech_tip": "...", "sources": ["..."], "confidence": "high|medium|low"}\n'
+        "只输出JSON，不要其他文字。"
+    )
+
+    # 构建 messages（只保留 role 和 content）
+    messages = []
+    for msg in chat_history:
+        messages.append({
+            "role": msg["role"],
+            "content": msg["content"],
+        })
+
+    # 调用多轮对话
+    text = llm_client.call_with_history(
+        agent_name="knowledge",
+        system=system,
+        messages=messages,
+        temperature=agent.temperature,
+    )
+
+    # 解析结果
+    import json
+    parsed = agent._safe_parse_json(text)
+    if parsed and "answer" in parsed:
+        raw_conf = parsed.get("confidence", "medium")
+        parsed["confidence"] = _CONFIDENCE_EN_TO_CN.get(raw_conf, raw_conf)
+        return parsed
+
+    # 回退：纯文本作为 answer
+    return {
+        "answer": text.strip()[:800] if text else "抱歉，未能生成回答。",
+        "ksher_advantages": [],
+        "speech_tip": "",
+        "sources": [],
+        "confidence": "中",
+    }
+
+
+# ============================================================
+# 反馈持久化
+# ============================================================
+def _save_qa_feedback(action: str, msg: dict, chat_history: list):
+    """保存知识问答反馈"""
+    try:
+        from services.persistence import FeedbackPersistence
+        fp = FeedbackPersistence()
+        # 找到该回答对应的用户问题
+        question = ""
+        for i, m in enumerate(chat_history):
+            if m is msg and i > 0:
+                question = chat_history[i - 1].get("content", "")
+                break
+        fp.save(
+            module="qa",
+            action=action,
+            context={"question": question},
+            output={"answer": msg.get("content", ""), **msg.get("metadata", {})},
+        )
+    except Exception:
+        pass  # 反馈保存失败不阻塞用户体验
+
+
+# ============================================================
 # 主渲染入口
 # ============================================================
 def render_knowledge_qa():
@@ -204,6 +393,12 @@ def render_knowledge_qa():
         unsafe_allow_html=True,
     )
     st.markdown("---")
+
+    # ---- 模式指示 ----
+    if _is_mock_mode():
+        st.warning("当前为 Mock 模式（KnowledgeAgent 未就绪，请检查 API Key 配置）", icon="⚠️")
+    else:
+        st.success("AI 真实模式（调用 KnowledgeAgent）", icon="✅")
 
     # ---- 快捷问题标签 ----
     st.markdown("####  常见问题")
@@ -224,92 +419,152 @@ def render_knowledge_qa():
 
     st.markdown("---")
 
-    # ---- 输入框 ----
-    default_q = st.session_state.get("kq_question", "")
-    question = st.text_input(
-        "输入你的问题",
-        value=default_q,
-        placeholder="例如：泰国B2B收款费率多少？Ksher和万里汇有什么区别？",
-        key="kq_input",
-    )
-
-    col_btn1, _ = st.columns([1, 4])
-    with col_btn1:
-        ask_clicked = st.button(
-            "🔍 查询",
-            use_container_width=True,
-            type="primary",
+    # ---- 筛选条件：行业 + 国家 ----
+    filter_cols = st.columns(2)
+    with filter_cols[0]:
+        industry_keys = [""] + list(INDUSTRY_OPTIONS.keys())
+        industry_labels = ["不限行业"] + list(INDUSTRY_OPTIONS.values())
+        selected_industry_idx = st.selectbox(
+            "行业筛选",
+            range(len(industry_keys)),
+            format_func=lambda i: industry_labels[i],
+            key="kq_industry",
         )
+        selected_industry = industry_keys[selected_industry_idx]
 
-    # ---- 展示答案 ----
-    if ask_clicked and question:
-        with st.spinner("AI 正在查询知识库..."):
-            result = _get_mock_answer(question)
-            st.session_state.kq_last_answer = result
-            st.session_state.kq_last_question = question
+    with filter_cols[1]:
+        country_keys = [""] + list(COUNTRY_OPTIONS.keys())
+        country_labels = ["不限国家"] + list(COUNTRY_OPTIONS.values())
+        selected_country_idx = st.selectbox(
+            "国家筛选",
+            range(len(country_keys)),
+            format_func=lambda i: country_labels[i],
+            key="kq_country",
+        )
+        selected_country = country_keys[selected_country_idx]
 
-    # 显示上一次答案
-    last_q = st.session_state.get("kq_last_question", "")
-    last_a = st.session_state.get("kq_last_answer", {})
+    # ---- 初始化对话历史 ----
+    if "kq_chat_history" not in st.session_state:
+        st.session_state.kq_chat_history = []  # [{"role": "user"/"assistant", "content": ..., "metadata": {...}}]
 
-    if not last_a:
+    # ---- 快捷问题点击处理 ----
+    default_q = st.session_state.pop("kq_question", "")
+
+    # ---- 显示对话历史 ----
+    chat_history = st.session_state.kq_chat_history
+
+    if not chat_history:
         render_empty_state(
             icon="📚",
-            title="知识问答",
-            description="在上方输入框中输入你的产品问题，例如：「泰国B2B费率是多少？」",
+            title="知识问答（多轮对话）",
+            description="在下方输入框中提问，支持连续追问。例如：「泰国B2B费率是多少？」→「那和PingPong比呢？」",
         )
     else:
-        st.markdown("---")
-        st.markdown(f"####  问题：{last_q}")
+        for i, msg in enumerate(chat_history):
+            with st.chat_message(msg["role"]):
+                if msg["role"] == "assistant":
+                    metadata = msg.get("metadata", {})
+                    # 置信度标签
+                    confidence = metadata.get("confidence", "")
+                    if confidence:
+                        color_map = {"高": BRAND_COLORS["success"], "中": BRAND_COLORS["warning"], "低": BRAND_COLORS["danger"]}
+                        conf_color = color_map.get(confidence, BRAND_COLORS["text_secondary"])
+                        st.markdown(
+                            f"<span style='background:{conf_color}20;color:{conf_color};"
+                            f"padding:0.15rem 0.5rem;border-radius:0.3rem;font-size:0.75rem;"
+                            f"font-weight:600;'>置信度：{confidence}</span>",
+                            unsafe_allow_html=True,
+                        )
+                    # 答案
+                    st.markdown(msg["content"])
+                    # 优势点
+                    advantages = metadata.get("ksher_advantages", [])
+                    if advantages:
+                        st.markdown("**Ksher 优势亮点**")
+                        for adv in advantages:
+                            st.markdown(f"- {adv}")
+                    # 话术建议
+                    speech_tip = metadata.get("speech_tip", "")
+                    if speech_tip:
+                        st.info(f"**话术建议：** {speech_tip}")
+                    # 来源
+                    sources = metadata.get("sources", [])
+                    if sources:
+                        with st.expander("引用来源"):
+                            for src in sources:
+                                st.markdown(f"- `{src}`")
+                    # 反馈按钮
+                    fb_cols = st.columns([1, 1, 4])
+                    with fb_cols[0]:
+                        if st.button("有帮助", key=f"kq_up_{i}"):
+                            _save_qa_feedback("helpful", msg, chat_history)
+                            st.success("✓ 感谢反馈！已记录。")
+                    with fb_cols[1]:
+                        if st.button("需改进", key=f"kq_down_{i}"):
+                            _save_qa_feedback("needs_improvement", msg, chat_history)
+                            st.info("✓ 已记录，我们会优化答案。")
+                else:
+                    st.markdown(msg["content"])
 
-        # 置信度标签
-        confidence = last_a.get("confidence", "中")
-        color_map = {"高": BRAND_COLORS["success"], "中": BRAND_COLORS["warning"], "低": BRAND_COLORS["danger"]}
-        conf_color = color_map.get(confidence, BRAND_COLORS["text_secondary"])
+    # ---- 清除对话按钮 ----
+    if chat_history:
+        if st.button("清除对话", key="kq_clear"):
+            st.session_state.kq_chat_history = []
+            st.rerun()
 
-        st.markdown(
-            f"""
-            <div style='
-                display: inline-flex;
-                align-items: center;
-                gap: 0.4rem;
-                margin-bottom: 0.5rem;
-            '>
-                <span style='
-                    background: {conf_color}20;
-                    color: {conf_color};
-                    padding: 0.15rem 0.5rem;
-                    border-radius: 0.3rem;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                '>
-                    置信度：{confidence}
-                </span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    # ---- 对话输入 ----
+    user_input = st.chat_input(
+        placeholder="输入问题，支持连续追问...",
+        key="kq_chat_input",
+    )
 
-        # 答案内容
-        st.markdown(last_a.get("answer", ""))
+    # ---- 模型用量显示（对话框下方）----
+    stats = _get_model_usage_stats()
+    remaining_m = stats["quota_remaining"] / 1_000_000
+    st.caption(
+        f"🤖 {stats['model_name']}  |  已使用: {stats['used_hours']:.1f}h "
+        f"({stats['used_tokens']:,} tokens)  |  剩余: {remaining_m:.1f}M "
+        f"({stats['quota_percent']:.0f}%)"
+    )
 
-        # 引用来源
-        sources = last_a.get("sources", [])
-        if sources:
-            st.markdown("---")
-            st.markdown("** 引用来源**")
-            for src in sources:
-                st.markdown(f"- `{src}`")
+    # 快捷问题触发
+    if default_q and not user_input:
+        user_input = default_q
 
-        # 反馈
-        st.markdown("---")
-        feedback_cols = st.columns([1, 1, 3])
-        with feedback_cols[0]:
-            if st.button("有帮助", key="kq_up"):
-                st.toast("感谢反馈！")
-        with feedback_cols[1]:
-            if st.button("需改进", key="kq_down"):
-                st.toast("已记录，我们会优化答案。")
+    if user_input:
+        # 添加用户消息
+        st.session_state.kq_chat_history.append({
+            "role": "user",
+            "content": user_input,
+        })
+
+        # 生成回答
+        with st.spinner("AI 正在查询知识库..."):
+            if mock_mode:
+                result = _get_mock_answer(user_input)
+            else:
+                try:
+                    result = _get_real_answer_with_history(
+                        st.session_state.kq_chat_history,
+                        industry=selected_industry,
+                        target_country=selected_country,
+                    )
+                except Exception as e:
+                    st.warning(f"真实模式调用失败，已回退到Mock。错误：{str(e)[:200]}")
+                    result = _get_mock_answer(user_input)
+
+        # 添加助手消息
+        st.session_state.kq_chat_history.append({
+            "role": "assistant",
+            "content": result.get("answer", ""),
+            "metadata": {
+                "confidence": result.get("confidence", ""),
+                "ksher_advantages": result.get("ksher_advantages", []),
+                "speech_tip": result.get("speech_tip", ""),
+                "sources": result.get("sources", []),
+            },
+        })
+        st.rerun()
 
     # ---- 使用提示 ----
     st.markdown("---")

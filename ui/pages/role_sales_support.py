@@ -9,6 +9,7 @@ import re
 import streamlit as st
 
 from config import BRAND_COLORS, TYPE_SCALE, SPACING, RADIUS, STATUS_COLOR_MAP
+from services.llm_status import get_global_llm_status, get_ui_ai_status, mark_global_runtime_failure
 from ui.components.content_refiner import render_content_refiner
 from ui.components.ui_cards import hex_to_rgb
 from ui.components.swarm_monitor import render_swarm_monitor, render_swarm_control
@@ -23,6 +24,10 @@ def _get_llm():
 
 def _is_mock_mode() -> bool:
     return not st.session_state.get("battle_router_ready", False)
+
+
+def _get_ai_status() -> tuple[str, str]:
+    return get_ui_ai_status(st.session_state)
 
 
 def _llm_call(system: str, user_msg: str, agent_name: str = "knowledge",
@@ -202,10 +207,13 @@ def render_role_sales_support():
     )
 
     # AI就绪状态
-    if _is_mock_mode():
-        st.warning("Mock模式（未连接AI）", icon="⚠️")
+    ai_status, ai_message = _get_ai_status()
+    if ai_status == "ready":
+        st.success(f"AI已就绪（真实 LLM 可用）\n\n{ai_message}", icon="✅")
+    elif ai_status == "degraded":
+        st.warning(f"初始化成功，但真实 LLM 当前不可用\n\n{ai_message}", icon="⚠️")
     else:
-        st.success("AI已就绪", icon="✅")
+        st.warning(ai_message, icon="⚠️")
 
     st.markdown("---")
 
@@ -319,6 +327,12 @@ def _render_battle_pack_tab():
                 try:
                     battle_pack = _generate_real_battle_pack(context, use_swarm=use_swarm)
                 except Exception as e:
+                    st.session_state.global_llm_status = mark_global_runtime_failure(
+                        get_global_llm_status(st.session_state),
+                        f"真实调用失败：{str(e)[:200]}",
+                    )
+                    st.session_state.llm_health = st.session_state.global_llm_status
+                    st.session_state.llm_real_ready = st.session_state.global_llm_status.get("ok", False)
                     render_mock_fallback_notice(
                         "真实模式调用失败，已自动回退到 Mock 模式",
                         f"错误：{str(e)[:200]}",
@@ -2990,4 +3004,3 @@ def _render_digital_employee_tab():
         # 渲染终端小部件
         from ui.components.terminal_widget import render_terminal_widget
         render_terminal_widget()
-

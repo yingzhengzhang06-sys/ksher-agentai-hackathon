@@ -10,16 +10,21 @@ import urllib.error
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from streamlit.testing.v1 import AppTest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ui.pages.moments_employee import (
     build_copy_button_html,
+    build_feedback_payload,
     build_generate_payload,
     build_state_message,
+    call_feedback_api,
     call_generate_api,
     default_moments_form,
     derive_compliance_state,
     derive_response_state,
+    extract_api_message,
     make_frontend_error_response,
     parse_generate_response,
     validate_moments_form,
@@ -108,6 +113,60 @@ def test_build_generate_payload_maps_ui_fields_to_api_fields():
     assert payload["previous_generation_id"] == "mom_previous"
 
 
+def test_build_feedback_payload_maps_useful_and_negative_feedback():
+    response = _success_response()
+
+    useful = build_feedback_payload(
+        response,
+        feedback_type="useful",
+        session_id="sess_ui",
+    )
+    negative = build_feedback_payload(
+        response,
+        feedback_type="not_useful",
+        session_id="sess_ui",
+        reason_label="太泛泛",
+        comment="需要更具体",
+    )
+
+    assert useful == {
+        "generation_id": "mom_001",
+        "feedback_type": "useful",
+        "comment": "",
+        "session_id": "sess_ui",
+    }
+    assert negative["generation_id"] == "mom_001"
+    assert negative["feedback_type"] == "not_useful"
+    assert negative["reason"] == "too_generic"
+    assert negative["comment"] == "需要更具体"
+    assert negative["session_id"] == "sess_ui"
+
+
+def test_build_feedback_payload_truncates_long_comment():
+    long_comment = "反馈" * 200
+
+    payload = build_feedback_payload(
+        _success_response(),
+        feedback_type="not_useful",
+        session_id="sess_ui",
+        reason_label="其他",
+        comment=long_comment,
+    )
+
+    assert payload["reason"] == "other"
+    assert len(payload["comment"]) == 300
+
+
+def test_extract_api_message_supports_detail_message_and_errors():
+    assert extract_api_message({"detail": "detail message"}, "fallback") == "detail message"
+    assert extract_api_message({"message": "plain message"}, "fallback") == "plain message"
+    assert (
+        extract_api_message({"errors": [{"message": "error message"}]}, "fallback")
+        == "error message"
+    )
+    assert extract_api_message({}, "fallback") == "fallback"
+
+
 def test_parse_generate_response_rejects_non_dict_output():
     response = parse_generate_response("not-json-dict")
 
@@ -186,8 +245,104 @@ def test_call_generate_api_handles_malformed_json(mock_urlopen):
     assert response["errors"][0]["code"] == "output_incomplete"
 
 
+@patch("ui.pages.moments_employee.urllib.request.urlopen")
+def test_call_generate_api_parses_rate_limit_http_error(mock_urlopen):
+    mock_http_error = urllib.error.HTTPError(
+        url="http://localhost:8000/api/moments/generate",
+        code=429,
+        msg="Too Many Requests",
+        hdrs=None,
+        fp=MagicMock(),
+    )
+    mock_http_error.fp.read.return_value = (
+        b'{"success":false,"status":"error","generation_id":"","result":null,'
+        b'"quality":null,"errors":[{"code":"unknown_error","message":"\\u751f\\u6210\\u8bf7\\u6c42\\u8fc7\\u4e8e\\u9891\\u7e41","field":"session_id","detail":""}],'
+        b'"fallback_used":false}'
+    )
+    mock_urlopen.side_effect = mock_http_error
+
+    response = call_generate_api({"content_type": "product_explain"}, timeout=1)
+
+    assert response["success"] is False
+    assert response["status"] == "error"
+    assert response["errors"][0]["field"] == "session_id"
+    assert "请求过于频繁" in response["errors"][0]["message"]
+
+
+@patch("ui.pages.moments_employee.urllib.request.urlopen")
+def test_call_feedback_api_success(mock_urlopen):
+    mock_response = MagicMock()
+    mock_response.__enter__.return_value.read.return_value = (
+        b'{"success":true,"feedback_id":"fb_001","message":"\\u5df2\\u6536\\u5230\\u53cd\\u9988"}'
+    )
+    mock_urlopen.return_value = mock_response
+
+    response = call_feedback_api({"generation_id": "mom_001", "feedback_type": "useful"}, timeout=1)
+
+    assert response["success"] is True
+    assert response["feedback_id"] == "fb_001"
+    assert response["message"] == "已收到反馈"
+
+
+@patch("ui.pages.moments_employee.urllib.request.urlopen")
+def test_call_feedback_api_handles_network_error(mock_urlopen):
+    mock_urlopen.side_effect = urllib.error.URLError("connection refused")
+
+    response = call_feedback_api({"generation_id": "mom_001", "feedback_type": "useful"}, timeout=1)
+
+    assert response["success"] is False
+    assert response["message"] == "无法连接反馈服务，请稍后重试"
+
+
+@patch("ui.pages.moments_employee.urllib.request.urlopen")
+def test_call_feedback_api_handles_http_429_error_shape(mock_urlopen):
+    mock_http_error = urllib.error.HTTPError(
+        url="http://localhost:8000/api/moments/feedback",
+        code=429,
+        msg="Too Many Requests",
+        hdrs=None,
+        fp=MagicMock(),
+    )
+    mock_http_error.fp.read.return_value = (
+        b'{"success":false,"errors":[{"code":"unknown_error","message":"\\u8bf7\\u6c42\\u8fc7\\u4e8e\\u9891\\u7e41","field":"session_id","detail":""}]}'
+    )
+    mock_urlopen.side_effect = mock_http_error
+
+    response = call_feedback_api({"generation_id": "mom_001", "feedback_type": "useful"}, timeout=1)
+
+    assert response["success"] is False
+    assert response["message"] == "请求过于频繁"
+
+
 def test_moments_page_supports_streamlit_single_file_entry():
     source = Path("ui/pages/moments_employee.py").read_text(encoding="utf-8")
 
     assert 'if __name__ == "__main__":' in source
     assert "render_moments_employee()" in source.split('if __name__ == "__main__":', 1)[1]
+
+
+def test_moments_page_initializes_browser_session_id():
+    source = Path("ui/pages/moments_employee.py").read_text(encoding="utf-8")
+
+    assert 'MOMENTS_SESSION_STATE_KEY = "moments_session_id"' in source
+    assert "uuid4" in source
+    assert "st.session_state[MOMENTS_SESSION_STATE_KEY]" in source
+    assert "get_moments_session_id()" in source
+
+
+def test_moments_page_does_not_use_fixed_streamlit_session_id():
+    source = Path("ui/pages/moments_employee.py").read_text(encoding="utf-8")
+
+    assert "streamlit_session" not in source
+
+
+def test_streamlit_page_renders_core_mobile_content():
+    app = AppTest.from_file("ui/pages/moments_employee.py")
+
+    app.run(timeout=10)
+
+    assert not app.exception
+    assert [title.value for title in app.title] == ["发朋友圈数字员工"]
+    assert [selectbox.label for selectbox in app.selectbox] == ["内容类型", "目标客户"]
+    assert [text_area.label for text_area in app.text_area] == ["补充说明"]
+    assert "生成朋友圈内容" in [button.label for button in app.button]

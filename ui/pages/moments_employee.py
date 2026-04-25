@@ -14,6 +14,7 @@ import urllib.request
 from dataclasses import dataclass
 from html import escape
 from typing import Any
+from uuid import uuid4
 
 import streamlit as st
 
@@ -23,7 +24,9 @@ from ui.components.ui_cards import hex_to_rgb
 
 API_BASE_URL = os.environ.get("MOMENTS_API_BASE_URL", "http://localhost:8000")
 GENERATE_PATH = "/api/moments/generate"
+FEEDBACK_PATH = "/api/moments/feedback"
 MAX_EXTRA_CONTEXT_LENGTH = 300
+MOMENTS_SESSION_STATE_KEY = "moments_session_id"
 
 CONTENT_TYPE_OPTIONS = {
     "产品解读": "product_explain",
@@ -104,7 +107,7 @@ def validate_moments_form(form: dict[str, Any]) -> FormValidationResult:
 def build_generate_payload(
     form: dict[str, Any],
     *,
-    session_id: str = "streamlit_session",
+    session_id: str = "",
     previous_generation_id: str | None = None,
 ) -> dict[str, Any]:
     """把 UI 字段映射为后端 API 请求字段。"""
@@ -124,6 +127,46 @@ def build_generate_payload(
         "session_id": session_id,
         "previous_generation_id": previous_generation_id or form.get("regenerate_from_id") or None,
     }
+
+
+def build_feedback_payload(
+    response: dict[str, Any],
+    *,
+    feedback_type: str,
+    session_id: str = "",
+    reason_label: str | None = None,
+    comment: str = "",
+) -> dict[str, Any]:
+    """把反馈 UI 字段映射为后端反馈 API 请求字段。"""
+    safe_comment = str(comment or "").strip()[:MAX_EXTRA_CONTEXT_LENGTH]
+    payload: dict[str, Any] = {
+        "generation_id": response.get("generation_id", ""),
+        "feedback_type": feedback_type,
+        "comment": safe_comment,
+        "session_id": session_id,
+    }
+    reason = FEEDBACK_REASONS.get(reason_label or "")
+    if feedback_type == "not_useful" and reason:
+        payload["reason"] = reason
+    return payload
+
+
+def extract_api_message(data: Any, default_message: str) -> str:
+    """从不同 API 错误结构中提取用户可读提示。"""
+    if not isinstance(data, dict):
+        return default_message
+    detail = data.get("detail")
+    if isinstance(detail, str) and detail:
+        return detail
+    message = data.get("message")
+    if isinstance(message, str) and message:
+        return message
+    errors = data.get("errors")
+    if isinstance(errors, list) and errors:
+        first_error = errors[0]
+        if isinstance(first_error, dict) and first_error.get("message"):
+            return str(first_error["message"])
+    return default_message
 
 
 def make_frontend_error_response(
@@ -224,6 +267,45 @@ def call_generate_api(payload: dict[str, Any], *, timeout: int = 20) -> dict[str
         )
 
 
+def call_feedback_api(payload: dict[str, Any], *, timeout: int = 10) -> dict[str, Any]:
+    """提交反馈 API。失败时返回前端可提示的结构。"""
+    url = f"{API_BASE_URL.rstrip('/')}{FEEDBACK_PATH}"
+    body = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            if isinstance(data, dict) and data.get("success") is True:
+                return data
+            return {
+                "success": False,
+                "message": extract_api_message(data, "反馈提交失败，请稍后重试"),
+            }
+    except (TimeoutError, socket.timeout):
+        return {"success": False, "message": "反馈提交超时，请稍后重试"}
+    except urllib.error.HTTPError as exc:
+        try:
+            data = json.loads(exc.read().decode("utf-8"))
+            if isinstance(data, dict):
+                return {
+                    "success": False,
+                    "message": extract_api_message(data, "反馈提交失败，请稍后重试"),
+                }
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            pass
+        return {"success": False, "message": "反馈提交失败，请稍后重试"}
+    except urllib.error.URLError:
+        return {"success": False, "message": "无法连接反馈服务，请稍后重试"}
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return {"success": False, "message": "反馈接口返回格式异常，请稍后重试"}
+
+
 def derive_compliance_state(response: dict[str, Any] | None) -> str:
     """从后端 compliance_tip.status 派生前端合规状态。"""
     result = (response or {}).get("result") or {}
@@ -313,7 +395,17 @@ def build_copy_button_html(text: str, *, label: str = "复制文案") -> str:
     """
 
 
+def get_moments_session_id() -> str:
+    """返回当前 Streamlit 浏览器会话内稳定复用的生成 session_id。"""
+    session_id = st.session_state.get(MOMENTS_SESSION_STATE_KEY)
+    if not session_id:
+        session_id = f"moments_{uuid4().hex}"
+        st.session_state[MOMENTS_SESSION_STATE_KEY] = session_id
+    return str(session_id)
+
+
 def _init_moments_state() -> None:
+    get_moments_session_id()
     if "moments_form" not in st.session_state:
         st.session_state.moments_form = default_moments_form()
     if "moments_ui_state" not in st.session_state:
@@ -444,7 +536,7 @@ def _submit_generation(*, regenerate: bool = False) -> None:
 
     payload = build_generate_payload(
         form,
-        session_id=st.session_state.get("session_id", "streamlit_session"),
+        session_id=get_moments_session_id(),
         previous_generation_id=previous_generation_id,
     )
 
@@ -552,8 +644,17 @@ def _render_feedback_panel(response: dict[str, Any] | None) -> None:
     col1, col2 = st.columns(2)
     with col1:
         if st.button("有用", use_container_width=True):
-            st.session_state.moments_feedback_submitted = True
-            st.success("已收到反馈。")
+            payload = build_feedback_payload(
+                response,
+                feedback_type="useful",
+                session_id=get_moments_session_id(),
+            )
+            feedback_response = call_feedback_api(payload)
+            st.session_state.moments_feedback_submitted = bool(feedback_response.get("success"))
+            if feedback_response.get("success"):
+                st.success(feedback_response.get("message") or "已收到反馈。")
+            else:
+                st.warning(feedback_response.get("message") or "反馈提交失败，请稍后重试。")
     with col2:
         not_useful = st.button("没用", use_container_width=True)
 
@@ -564,11 +665,19 @@ def _render_feedback_panel(response: dict[str, Any] | None) -> None:
         reason = st.selectbox("原因", list(FEEDBACK_REASONS.keys()), key="moments_feedback_reason")
         comment = st.text_area("补充说明", max_chars=300, key="moments_feedback_comment")
         if st.button("提交反馈", use_container_width=True):
-            st.session_state.moments_feedback_submitted = True
-            st.info(
-                f"反馈已本地记录：{reason}。正式反馈 API 完成后可提交到后端。"
-                + (f" 说明：{comment}" if comment else "")
+            payload = build_feedback_payload(
+                response,
+                feedback_type="not_useful",
+                session_id=get_moments_session_id(),
+                reason_label=reason,
+                comment=comment,
             )
+            feedback_response = call_feedback_api(payload)
+            st.session_state.moments_feedback_submitted = bool(feedback_response.get("success"))
+            if feedback_response.get("success"):
+                st.success(feedback_response.get("message") or "已收到反馈。")
+            else:
+                st.warning(feedback_response.get("message") or "反馈提交失败，请稍后重试。")
 
 
 def render_moments_employee() -> None:

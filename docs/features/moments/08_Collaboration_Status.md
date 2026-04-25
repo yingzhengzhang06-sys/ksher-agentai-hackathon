@@ -2,7 +2,7 @@
 
 > 文档版本：v0.1
 > 更新时间：2026-04-25
-> 当前阶段：PR Review / 最终门禁完成；等待人工 Review / Merge
+> 当前阶段：MVP 已合并，阶段归档完成；等待下一阶段任务启动
 > 事实源：
 > - `docs/features/moments/07_Engineering_Subtasks.md`
 > - `docs/features/moments/07_Test_Cases.md`
@@ -32,7 +32,7 @@
 | 阶段归档 | 已完成 | `10_Release_Record.md`、`11_Retrospective.md`、`17_Final_Submission_Checklist.md` 已更新 |
 | 提交准备 | 已完成 | 已生成精确提交清单，禁止 `git add .`，等待人工确认后提交 |
 | 架构复核 | 通过 | `13_Architecture_Review.md` 已确认无 P0 / P1 阻塞，允许进入产品负责人门禁 |
-| PR Review | 已创建 | PR #1：`https://github.com/yingzhengzhang06-sys/ksher-agentai-hackathon/pull/1`，当前进入人工 Review / Merge 讨论 |
+| PR Review / Merge | 已完成 | PR #1 已合并到 `main`；merge commit：`10183c3eaffc7c1cc70e522d62d928e3b07fb249` |
 | 下一阶段指令 | 已生成 | `12_Next_Phase_Instructions.md` 已明确 QA、工程师、架构师、产品负责人自动流转规则 |
 
 ---
@@ -43,13 +43,13 @@
 |---|---|---|---|---|
 | 前端工程师 | 人工检查反馈、`MOMENTS-QA-01` | 浏览器级 session_id、错误端口兜底、复制降级、重新生成可见反馈和独立 regenerate session | 已完成 | 当前待命；仅在新增缺陷时响应 |
 | 后端工程师 | `MOMENTS-QA-01` | 无需修改后端限频 helper | 暂缓 | 若 QA 复验仍失败，再交架构师裁决 |
-| AI 工程师 | `ARCH-AI-REAL-01` | 默认真实 AI 适配、fake LLM client 测试、真实 AI smoke test | 已完成 | 生产 / 演示环境仍需确认质量验收、成本和限流策略 |
+| AI 工程师 | `ARCH-AI-GOV-01` | 默认真实 AI 适配、fake LLM client 测试、真实 AI smoke test | 已完成 | 生产 / 演示环境仍需确认质量验收、成本和限流策略 |
 | 架构师 | `07_Test_Cases.md` 第 14.12 节、自动化回归结果、QA 截图 | 上线前架构复核 | 已完成 | 已输出 `13_Architecture_Review.md` |
 | QA 测试工程师 | `07_Test_Cases.md` 第 14.12 节 | 如产品要求，再做 iOS / Android 真机抽检 | 可选抽检 | 当前浏览器自动验收已通过 |
 | QA 测试工程师 | `07_Test_Cases.md` 第 14.13 节 | 默认真实 AI 后端链路验收 | 已完成 | 当前无 P0 / P1 阻塞 |
 | QA 测试工程师 / Ian | `07_Test_Cases.md` 第 14.14 节 | iOS / Android 手机端人工验收 | 已完成 | 当前无 P0 / P1 阻塞 |
 | 产品负责人 | QA 结论、架构师意见 | 最终门禁：允许上线准备 / 有条件通过 / 不通过 | 已完成 | 已输出 `14_Product_Final_Gate.md` |
-| 项目助理 Bot | 门禁结果、发布记录、复盘记录 | 维护归档状态和后续任务建议 | 已完成本轮交接 | 下一阶段可由架构师启动 `ARCH-AI-REAL-01` |
+| 项目助理 Bot | 门禁结果、发布记录、复盘记录、PR 合并结果 | 维护归档状态和后续任务建议 | 已完成本轮交接 | 下一阶段建议启动 `ARCH-AI-GOV-01`、`DEPLOY-MOMENTS-01`、`WORKTREE-CLEANUP-01` |
 
 ---
 

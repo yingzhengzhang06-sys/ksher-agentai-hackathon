@@ -21,3 +21,43 @@ Pillow>=11.0.0
 
 # 环境变量
 python-dotenv>=1.0.0
+
+# 网页内容抓取
+crawl4ai>=0.4.0
+newspaper4k>=0.9.0
+
+# 中文NLP
+jieba>=0.42.1
+
+# PDF解析
+PyPDF2>=3.0.0
+
+# 语音转文字
+faster-whisper>=1.0.0
+
+# HTML渲染为图片
+html2image>=2.0.0
+
+# 工作流引擎
+transitions>=0.9.0
+
+# 调度器
+APScheduler>=3.10.0
+
+# 任务队列
+celery>=5.4.0
+
+# API 框架
+fastapi>=0.115.0
+uvicorn>=0.32.0
+
+# 本地终端服务器（WebSocket）
+websockets>=14.0
+
+# 向量数据库 + Embedding
+chromadb>=0.6.0
+sentence-transformers>=3.4.0
+redis>=5.0.0
+
+# 社交平台爬虫（Playwright驱动）
+playwright>=1.40.0

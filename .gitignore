@@ -39,6 +39,8 @@ data/battle_packs/
 # 测试产出（截图/结果文件）
 tests/battle_pack_screenshot_*.png
 tests/e2e_battle_pack_result.json
+tests/screenshots/
+.coverage
 
 # 临时文件
 *.tmp
@@ -51,3 +53,21 @@ assets/posters/*.png
 !assets/posters/1-3ksher-b2b-intro-poster.png
 !assets/posters/1-4ksher-service-trade-combined-poster.png
 !assets/posters/2-2ksher-philippines-b2c-poster.png
+
+# Production env files
+.env.production
+.env.*
+
+# Local databases
+*.db
+
+# Chroma temporary test vector stores
+data/chroma_test_*/
+
+# Runtime generated data directories
+data/uploads/
+data/customers/
+data/feedback/
+data/vector_db/
+data/models/
+data/workflow_logs.db
